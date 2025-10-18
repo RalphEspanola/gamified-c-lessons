@@ -1,0 +1,52 @@
+<script setup>
+import { ref } from 'vue'
+
+// temporary user info
+const user = ref({
+  name: 'Ralph Española',
+  initials: 'RE',
+})
+
+const navItems = [
+  { title: 'Dashboard', path: '/', icon: 'mdi-view-dashboard' },
+  { title: 'lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
+  { title: 'Achievements', path: '/achievements', icon: 'mdi-trophy' },
+  { title: 'Leaderboard', path: '/leaderboard', icon: 'mdi-chart-bar' },
+]
+</script>
+
+<template>
+  <!-- APP BAR -->
+  <v-app-bar app color="primary" dark flat class="mb-10">
+    <v-toolbar-title class="text-h6 font-weight-bold"> Learn ITE 12</v-toolbar-title>
+
+    <v-spacer></v-spacer>
+
+    <!-- Navigation Tabs -->
+    <v-tabs centered color="white" slider-color="white">
+      <v-tab v-for="item in navItems" :key="item.path" :to="item.path" :prepend-icon="item.icon">
+        {{ item.title }}
+      </v-tab>
+    </v-tabs>
+
+    <v-spacer></v-spacer>
+
+    <!-- User info -->
+    <v-btn icon>
+      <v-avatar color="deep-purple accent-4">
+        <span class="white--text text-subtitle-2">{{ user.initials }}</span>
+      </v-avatar>
+    </v-btn>
+
+    <!-- Logout Button
+    <v-btn icon @click="console.log('logout clicked')">
+      <v-icon>mdi-logout</v-icon>
+    </v-btn> -->
+  </v-app-bar>
+</template>
+
+<style scoped>
+.v-toolbar-title {
+  cursor: pointer;
+}
+</style>
