@@ -42,16 +42,15 @@ const getStatusChip = (status) => {
 </script>
 
 <template>
-  <!-- Learning Path Section (Left Side) -->
-  <v-col cols="12" md="8">
+  <div class="learning-path-wrapper">
     <h2 class="text-h5 font-weight-bold mb-4">Your Learning Path</h2>
 
-    <v-card elevation="2">
+    <v-card elevation="2" class="full-height-card">
       <v-expansion-panels>
         <v-expansion-panel v-for="topic in topics" :key="topic.id">
           <v-expansion-panel-title>
             <div class="d-flex align-center">
-              <v-icon :color="'primary'" class="mr-3">{{ topic.icon }}</v-icon>
+              <v-icon color="primary" class="mr-3">{{ topic.icon }}</v-icon>
               <div>
                 <div class="text-h6 font-weight-bold">{{ topic.title }}</div>
                 <div class="text-caption text-grey">
@@ -65,7 +64,7 @@ const getStatusChip = (status) => {
             <v-list>
               <template v-for="(lesson, index) in topic.lessons" :key="lesson.id">
                 <v-list-item
-                  :prepend-icon="'mdi-book-open-page-variant'"
+                  prepend-icon="mdi-book-open-page-variant"
                   :title="lesson.title"
                   :subtitle="lesson.subtitle"
                   class="lesson-item"
@@ -88,10 +87,22 @@ const getStatusChip = (status) => {
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card>
-  </v-col>
+  </div>
 </template>
 
 <style scoped>
+.learning-path-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .lesson-item {
   cursor: pointer;
   transition: background-color 0.2s;
