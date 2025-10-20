@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const topics = ref([
   {
@@ -14,30 +17,39 @@ const topics = ref([
         title: 'Lesson 1: Elements of a C Program',
         subtitle: 'Learn the basic structure of C programs',
         status: 'completed',
+        route: '/lessons/1',
       },
       {
         id: 2,
         title: 'Lesson 2: Variables and Data Types',
         subtitle: 'Understanding variables and data types in C',
         status: 'in-progress',
+        route: '/lessons/2',
       },
       {
         id: 3,
         title: 'Lesson 3: Executable Statements (Input & Output)',
         subtitle: 'Master input and output operations',
         status: 'locked',
+        route: '/lessons/3',
       },
     ],
   },
 ])
 
-const getStatusChip = (status) => {
-  const chips = {
-    completed: { color: 'success', text: 'Completed' },
-    'in-progress': { color: 'primary', text: 'In Progress' },
-    locked: { color: 'grey', text: 'Locked', outlined: true },
+const continueLesson = (lesson) => {
+  if (lesson.status !== 'locked') {
+    router.push(lesson.route)
   }
-  return chips[status]
+}
+
+const getButtonConfig = (status) => {
+  const configs = {
+    completed: { color: 'success', text: 'Review', icon: 'mdi-check-circle' },
+    'in-progress': { color: 'primary', text: 'Continue', icon: 'mdi-play-circle' },
+    locked: { color: 'grey', text: 'Locked', icon: 'mdi-lock', disabled: true },
+  }
+  return configs[status]
 }
 </script>
 
@@ -70,13 +82,15 @@ const getStatusChip = (status) => {
                   class="lesson-item"
                 >
                   <template v-slot:append>
-                    <v-chip
-                      :color="getStatusChip(lesson.status).color"
-                      :variant="getStatusChip(lesson.status).outlined ? 'outlined' : 'flat'"
+                    <v-btn
+                      :color="getButtonConfig(lesson.status).color"
+                      :disabled="getButtonConfig(lesson.status).disabled"
+                      :prepend-icon="getButtonConfig(lesson.status).icon"
                       size="small"
+                      @click="continueLesson(lesson)"
                     >
-                      {{ getStatusChip(lesson.status).text }}
-                    </v-chip>
+                      {{ getButtonConfig(lesson.status).text }}
+                    </v-btn>
                   </template>
                 </v-list-item>
 
