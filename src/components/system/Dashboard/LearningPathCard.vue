@@ -33,6 +33,27 @@ const topics = ref([
         status: 'locked',
         route: '/topic1/lesson3',
       },
+      {
+        id: 4,
+        title: 'Lesson 4: Arithmetic Expressions',
+        subtitle: 'using arithmetic operators',
+        status: 'in-progress',
+        route: '/topic1/lesson4',
+      },
+      {
+        id: 5,
+        title: 'Lesson 5: Executable Statements (Input & Output)',
+        subtitle: 'Master input and output operations',
+        status: 'in-progress',
+        route: '/topic1/lesson5',
+      },
+      {
+        id: 6,
+        title: 'Lesson 6: Executable Statements (Input & Output)',
+        subtitle: 'Master input and output operations',
+        status: 'in-progress',
+        route: '/topic1/lesson6',
+      },
     ],
   },
 ])
