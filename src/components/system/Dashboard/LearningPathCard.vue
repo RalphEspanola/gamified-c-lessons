@@ -2,8 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { topic1 } from './Data/topic1Data'
-// Import other topics as you create them:
-// import { topic2 } from '@/data/topic2Data'
+import { topic2 } from './Data/topic2Data'
 // import { topic3 } from '@/data/topic3Data'
 
 const router = useRouter()
@@ -11,7 +10,7 @@ const router = useRouter()
 // Combine all topics into an array
 const topicsData = ref([
   topic1,
-  // topic2,
+  topic2,
   // topic3,
 ])
 
