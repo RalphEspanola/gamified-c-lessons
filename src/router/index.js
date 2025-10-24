@@ -6,6 +6,7 @@ import Lesson3ExecutableStatements from '@/components/system/Topic1/Lesson3/Less
 import Lesson4ArithmeticExpressions from '@/components/system/Topic1/Lesson4/Lesson4ArithmeticExpressions.vue'
 import Lesson5StringFormatter from '@/components/system/Topic1/Lesson5/Lesson5StringFormatter.vue'
 import Lesson6CommonProgrammingErrors from '@/components/system/Topic1/Lesson6/Lesson6CommonProgrammingErrors.vue'
+import Topic1QuizCFundamentals from '@/components/system/Topic1/Topic1Quiz/Topic1QuizCFundamentals.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/topic1/lesson6',
       name: 'Lesson6CommonProgrammingErrors',
       component: Lesson6CommonProgrammingErrors,
+    },
+    {
+      path: '/topic1/Topic1Quiz',
+      name: 'Topic1QuizCFundamentals',
+      component: Topic1QuizCFundamentals,
     },
   ],
 })
