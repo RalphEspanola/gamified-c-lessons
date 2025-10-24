@@ -54,6 +54,13 @@ const topics = ref([
         status: 'in-progress',
         route: '/topic1/lesson6',
       },
+      {
+        id: 7,
+        title: 'Topic 1 Quiz: C Fundamentals',
+        subtitle: 'Master input and output operations',
+        status: 'in-progress',
+        route: '/topic1/Topic1Quiz',
+      },
     ],
   },
 ])
