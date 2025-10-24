@@ -1,68 +1,18 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { topic1 } from './Data/topic1Data'
+// Import other topics as you create them:
+// import { topic2 } from '@/data/topic2Data'
+// import { topic3 } from '@/data/topic3Data'
 
 const router = useRouter()
 
-const topics = ref([
-  {
-    id: 1,
-    title: 'Topic 1: C Fundamentals',
-    icon: 'mdi-code-braces',
-    lessonsCount: 3,
-    duration: '45 mins',
-    lessons: [
-      {
-        id: 1,
-        title: 'Lesson 1: Elements of a C Program',
-        subtitle: 'Learn the basic structure of C programs',
-        status: 'completed',
-        route: '/topic1/lesson1',
-      },
-      {
-        id: 2,
-        title: 'Lesson 2: Variables and Data Types',
-        subtitle: 'Understanding variables and data types in C',
-        status: 'in-progress',
-        route: '/topic1/lesson2',
-      },
-      {
-        id: 3,
-        title: 'Lesson 3: Executable Statements (Input & Output)',
-        subtitle: 'Master input and output operations',
-        status: 'locked',
-        route: '/topic1/lesson3',
-      },
-      {
-        id: 4,
-        title: 'Lesson 4: Arithmetic Expressions',
-        subtitle: 'using arithmetic operators',
-        status: 'in-progress',
-        route: '/topic1/lesson4',
-      },
-      {
-        id: 5,
-        title: 'Lesson 5: Executable Statements (Input & Output)',
-        subtitle: 'Master input and output operations',
-        status: 'in-progress',
-        route: '/topic1/lesson5',
-      },
-      {
-        id: 6,
-        title: 'Lesson 6: Executable Statements (Input & Output)',
-        subtitle: 'Master input and output operations',
-        status: 'in-progress',
-        route: '/topic1/lesson6',
-      },
-      {
-        id: 7,
-        title: 'Topic 1 Quiz: C Fundamentals',
-        subtitle: 'Master input and output operations',
-        status: 'in-progress',
-        route: '/topic1/Topic1Quiz',
-      },
-    ],
-  },
+// Combine all topics into an array
+const topicsData = ref([
+  topic1,
+  // topic2,
+  // topic3,
 ])
 
 const continueLesson = (lesson) => {
@@ -87,7 +37,7 @@ const getButtonConfig = (status) => {
 
     <v-card elevation="2" class="full-height-card">
       <v-expansion-panels>
-        <v-expansion-panel v-for="topic in topics" :key="topic.id">
+        <v-expansion-panel v-for="topic in topicsData" :key="topic.id">
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon color="primary" class="mr-3">{{ topic.icon }}</v-icon>
@@ -102,7 +52,8 @@ const getButtonConfig = (status) => {
 
           <v-expansion-panel-text>
             <v-list>
-              <template v-for="(lesson, index) in topic.lessons" :key="lesson.id">
+              <!-- Lessons -->
+              <template v-for="lesson in topic.lessons" :key="lesson.id">
                 <v-list-item
                   prepend-icon="mdi-book-open-page-variant"
                   :title="lesson.title"
@@ -122,8 +73,29 @@ const getButtonConfig = (status) => {
                   </template>
                 </v-list-item>
 
-                <v-divider v-if="index < topic.lessons.length - 1"></v-divider>
+                <v-divider></v-divider>
               </template>
+
+              <!-- Quiz -->
+              <v-list-item
+                v-if="topic.quiz"
+                prepend-icon="mdi-clipboard-check"
+                :title="topic.quiz.title"
+                :subtitle="topic.quiz.subtitle"
+                class="lesson-item quiz-item"
+              >
+                <template v-slot:append>
+                  <v-btn
+                    :color="getButtonConfig(topic.quiz.status).color"
+                    :disabled="getButtonConfig(topic.quiz.status).disabled"
+                    :prepend-icon="getButtonConfig(topic.quiz.status).icon"
+                    size="small"
+                    @click="continueLesson(topic.quiz)"
+                  >
+                    {{ getButtonConfig(topic.quiz.status).text }}
+                  </v-btn>
+                </template>
+              </v-list-item>
             </v-list>
           </v-expansion-panel-text>
         </v-expansion-panel>
@@ -152,5 +124,9 @@ const getButtonConfig = (status) => {
 
 .lesson-item:hover {
   background-color: rgba(0, 0, 0, 0.04);
+}
+
+.quiz-item {
+  background-color: rgba(156, 39, 176, 0.05);
 }
 </style>
