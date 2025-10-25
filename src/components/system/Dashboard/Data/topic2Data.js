@@ -67,6 +67,6 @@ export const topic2 = {
     title: 'Topic 2 Quiz: Conditions, Logical Expressions, and Selection Control Structures',
     subtitle: 'Test your understanding of control structures and decision-making',
     status: 'locked',
-    route: '/topic2/quiz',
+    route: '/topic2/Topic2Quiz',
   },
 }
