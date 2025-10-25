@@ -16,6 +16,15 @@ import Lesson6TheIfElseStatement from '@/components/system/Topic2/Lesson6TheIf�
 import Lesson7NestedIfElseStatement from '@/components/system/Topic2/Lesson7NestedIf–ElseStatement.vue'
 import Lesson8TheSwitchCaseStatement from '@/components/system/Topic2/Lesson8TheSwitchCaseStatement.vue'
 import Topic2Quiz from '@/components/system/Topic2/Topic2Quiz.vue'
+import Lesson1TheWhileStatement from '@/components/system/Topic3/Lesson1TheWhileStatement.vue'
+import Lesson2PhasesofLoopExecution from '@/components/system/Topic3/Lesson2PhasesOfLoopExecution.vue'
+import Lesson3LoopsUsingTheWhileStatement from '@/components/system/Topic3/Lesson3LoopsUsingTheWhileStatement.vue'
+import Lesson4TheSwitchStatement from '@/components/system/Topic3/Lesson4TheSwitchStatement.vue'
+import Lesson5TheDoWhileStatement from '@/components/system/Topic3/Lesson5TheDo–WhileStatement.vue'
+import Lesson6TheForStatement from '@/components/system/Topic3/Lesson6TheForStatement.vue'
+import Lesson7NestedLogicAndLoop from '@/components/system/Topic3/Lesson7NestedLogicAndLoop.vue'
+import Topic3Quiz from '@/components/system/Topic3/Topic3Quiz.vue'
+import T4L1VoidDesign from '@/components/system/Topic4/T4L1VoidDesign.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -104,6 +113,51 @@ const router = createRouter({
       path: '/topic2/Topic2Quiz',
       name: 'Topic2Quiz',
       component: Topic2Quiz,
+    },
+    {
+      path: '/topic3/lesson1',
+      name: 'Lesson1TheWhileStatement',
+      component: Lesson1TheWhileStatement,
+    },
+    {
+      path: '/topic3/lesson2',
+      name: 'Lesson2PhasesofLoopExecution',
+      component: Lesson2PhasesofLoopExecution,
+    },
+    {
+      path: '/topic3/lesson3',
+      name: 'Lesson3LoopsUsingTheWhileStatement',
+      component: Lesson3LoopsUsingTheWhileStatement,
+    },
+    {
+      path: '/topic3/lesson4',
+      name: 'Lesson4TheSwitchStatement',
+      component: Lesson4TheSwitchStatement,
+    },
+    {
+      path: '/topic3/lesson5',
+      name: 'Lesson5TheDoWhileStatement',
+      component: Lesson5TheDoWhileStatement,
+    },
+    {
+      path: '/topic3/lesson6',
+      name: 'Lesson6TheForStatement',
+      component: Lesson6TheForStatement,
+    },
+    {
+      path: '/topic3/lesson7',
+      name: 'Lesson7NestedLogicAndLoop',
+      component: Lesson7NestedLogicAndLoop,
+    },
+    {
+      path: '/topic3/Topic3Quiz',
+      name: 'Topic3Quiz',
+      component: Topic3Quiz,
+    },
+    {
+      path: '/topic4/lesson1',
+      name: 'T4L1VoidDesign',
+      component: T4L1VoidDesign,
     },
   ],
 })

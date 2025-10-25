@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { topic1 } from './Data/topic1Data'
 import { topic2 } from './Data/topic2Data'
-// import { topic3 } from '@/data/topic3Data'
+import { topic3 } from './Data/topic3Data'
+import { topic4 } from './Data/topic4Data'
 
 const router = useRouter()
 
@@ -11,7 +12,10 @@ const router = useRouter()
 const topicsData = ref([
   topic1,
   topic2,
-  // topic3,
+  topic3,
+  topic4,
+  // topic5,
+  // topic6,
 ])
 
 const continueLesson = (lesson) => {
