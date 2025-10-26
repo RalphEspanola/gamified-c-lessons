@@ -1,5 +1,5 @@
 <script setup>
-import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import LessonSlides from '../LessonSlides/LessonSlides.vue'
 
 const lessonTitle = 'Lesson 2: An Overview of User-Defined Functions'
 const lessonDescription = 'Understanding user-defined functions in C programming'
@@ -47,23 +47,25 @@ That's a user-defined function — one that you write yourself to perform a spec
   {
     id: 3,
     title: 'Concept Explanation (Function Structure)',
-    content: `A user-defined function in C usually has three main parts:
+    content: [
+      {
+        type: 'text',
+        value: `A user-defined function in C usually has three main parts:
 
 1️⃣ Function Declaration (Prototype) – tells the compiler about the function.`,
-    code: `int add(int a, int b);`,
-    explanation: `2️⃣ Function Definition – where the function's code is written.
-\`\`\`c
-int add(int a, int b) {
+      },
+      { type: 'code', value: `int add(int a, int b);` },
+      { type: 'text', value: `2️⃣ Function Definition – where the function's code is written.` },
+      {
+        type: 'code',
+        value: `int add(int a, int b) {
     return a + b;
-}
-\`\`\`
-
-3️⃣ Function Call – where the function is used inside main().
-\`\`\`c
-printf("%d", add(5, 3));
-\`\`\`
-
-💡 These parts help organize your code and make it reusable.`,
+}`,
+      },
+      { type: 'text', value: `3️⃣ Function Call – where the function is used inside main().` },
+      { type: 'code', value: `printf("%d", add(5, 3));` },
+      { type: 'text', value: `💡 These parts help organize your code and make it reusable.` },
+    ],
   },
   {
     id: 4,
