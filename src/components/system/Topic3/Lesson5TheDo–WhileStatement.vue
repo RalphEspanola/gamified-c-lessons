@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+
 const lessonTitle = 'Lesson 5: The Do–While Statement'
 const lessonDescription = 'Understanding do-while loops in C programming'
 
@@ -191,19 +192,25 @@ int main() {
   {
     id: 10,
     title: 'Lesson Takeaways',
-    content: `Key Points to Remember:
+    content: [
+      {
+        type: 'text',
+        value: `Key Points to Remember:
 
 • The do–while loop always runs at least once.
 • The condition is checked after the loop executes.
 • Use it when you must perform an action first (like asking for input).
 • Common use: menus, input validation, or retry prompts.
 
-Structure:
-\`\`\`c
-do {
+Structure:`,
+      },
+      {
+        type: 'code',
+        value: `do {
     // statements
-} while (condition);
-\`\`\``,
+} while (condition);`,
+      },
+    ],
   },
 ]
 </script>
