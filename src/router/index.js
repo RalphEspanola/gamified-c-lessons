@@ -25,6 +25,11 @@ import Lesson6TheForStatement from '@/components/system/Topic3/Lesson6TheForStat
 import Lesson7NestedLogicAndLoop from '@/components/system/Topic3/Lesson7NestedLogicAndLoop.vue'
 import Topic3Quiz from '@/components/system/Topic3/Topic3Quiz.vue'
 import T4L1VoidDesign from '@/components/system/Topic4/T4L1VoidDesign.vue'
+import T4L2UserFunctions from '@/components/system/Topic4/T4L2UserFunctions.vue'
+import T4L3SyntaxSemantics from '@/components/system/Topic4/T4L3SyntaxSemantics.vue'
+import T4L4Parameters from '@/components/system/Topic4/T4L4Parameters.vue'
+import T4L5Designing from '@/components/system/Topic4/T4L5Designing.vue'
+import T4Quiz from '@/components/system/Topic4/T4Quiz.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -158,6 +163,31 @@ const router = createRouter({
       path: '/topic4/lesson1',
       name: 'T4L1VoidDesign',
       component: T4L1VoidDesign,
+    },
+    {
+      path: '/topic4/lesson2',
+      name: 'T4L2UserFunctions',
+      component: T4L2UserFunctions,
+    },
+    {
+      path: '/topic4/lesson3',
+      name: 'T4L3SyntaxSemantics',
+      component: T4L3SyntaxSemantics,
+    },
+    {
+      path: '/topic4/lesson4',
+      name: 'T4L4Parameters',
+      component: T4L4Parameters,
+    },
+    {
+      path: '/topic4/lesson5',
+      name: 'T4L5Designing',
+      component: T4L5Designing,
+    },
+    {
+      path: '/topic4/Topic4Quiz',
+      name: 'T4Quiz',
+      component: T4Quiz,
     },
   ],
 })
