@@ -30,6 +30,11 @@ import T4L3SyntaxSemantics from '@/components/system/Topic4/T4L3SyntaxSemantics.
 import T4L4Parameters from '@/components/system/Topic4/T4L4Parameters.vue'
 import T4L5Designing from '@/components/system/Topic4/T4L5Designing.vue'
 import T4Quiz from '@/components/system/Topic4/T4Quiz.vue'
+import T5L1OneDimensionalArray from '@/components/system/Topic5/T5L1OneDimensionalArray.vue'
+import T5L2WorkingWithStrings from '@/components/system/Topic5/T5L2WorkingWithStrings.vue'
+import T5L3MultidimensionalArrays from '@/components/system/Topic5/T5L3MultidimensionalArrays.vue'
+import T5L4BasicStringManipulations from '@/components/system/Topic5/T5L4BasicStringManipulations.vue'
+import T5Quiz from '@/components/system/Topic5/T5Quiz.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -188,6 +193,31 @@ const router = createRouter({
       path: '/topic4/Topic4Quiz',
       name: 'T4Quiz',
       component: T4Quiz,
+    },
+    {
+      path: '/topic5/lesson1',
+      name: 'T5L1OneDimensionalArray',
+      component: T5L1OneDimensionalArray,
+    },
+    {
+      path: '/topic5/lesson2',
+      name: 'T5L2WorkingWithStrings',
+      component: T5L2WorkingWithStrings,
+    },
+    {
+      path: '/topic5/lesson3',
+      name: 'T5L3MultidimensionalArrays',
+      component: T5L3MultidimensionalArrays,
+    },
+    {
+      path: '/topic5/lesson4',
+      name: 'T5L4BasicStringManipulations',
+      component: T5L4BasicStringManipulations,
+    },
+    {
+      path: '/topic5/Topic5Quiz',
+      name: 'T5Quiz',
+      component: T5Quiz,
     },
   ],
 })

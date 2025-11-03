@@ -5,18 +5,12 @@ import { topic1 } from './Data/topic1Data'
 import { topic2 } from './Data/topic2Data'
 import { topic3 } from './Data/topic3Data'
 import { topic4 } from './Data/topic4Data'
+import { topic5 } from './Data/topic5Data'
 
 const router = useRouter()
 
 // Combine all topics into an array
-const topicsData = ref([
-  topic1,
-  topic2,
-  topic3,
-  topic4,
-  // topic5,
-  // topic6,
-])
+const topicsData = ref([topic1, topic2, topic3, topic4, topic5])
 
 const continueLesson = (lesson) => {
   if (lesson.status !== 'locked') {
