@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import CoinsDisplay from '../system/Shop/CoinsDisplay.vue'
 
 // temporary user info
 const user = ref({
@@ -9,7 +10,8 @@ const user = ref({
 
 const navItems = [
   { title: 'Dashboard', path: '/', icon: 'mdi-view-dashboard' },
-  { title: 'lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
+  { title: 'Lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
+  { title: 'Shop', path: '/shop', icon: 'mdi-store', badge: 'NEW' },
   { title: 'Achievements', path: '/achievements', icon: 'mdi-trophy' },
   { title: 'Leaderboard', path: '/leaderboard', icon: 'mdi-chart-bar' },
 ]
@@ -38,6 +40,7 @@ const navItems = [
       </v-avatar>
     </v-btn>
 
+    <CoinsDisplay class="mr-4" />
     <!-- Logout Button
     <v-btn icon @click="console.log('logout clicked')">
       <v-icon>mdi-logout</v-icon>
