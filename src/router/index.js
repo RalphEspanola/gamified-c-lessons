@@ -35,6 +35,7 @@ import T5L2WorkingWithStrings from '@/components/system/Topic5/T5L2WorkingWithSt
 import T5L3MultidimensionalArrays from '@/components/system/Topic5/T5L3MultidimensionalArrays.vue'
 import T5L4BasicStringManipulations from '@/components/system/Topic5/T5L4BasicStringManipulations.vue'
 import T5Quiz from '@/components/system/Topic5/T5Quiz.vue'
+import ShopPage from '@/views/ShopPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -218,6 +219,11 @@ const router = createRouter({
       path: '/topic5/Topic5Quiz',
       name: 'T5Quiz',
       component: T5Quiz,
+    },
+    {
+      path: '/shop',
+      name: 'shop',
+      component: ShopPage,
     },
   ],
 })
