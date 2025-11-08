@@ -8,6 +8,9 @@ const props = defineProps({
   },
 })
 
+// Add emit for heart system
+const emit = defineEmits(['wrong-answer', 'correct-answer'])
+
 const practiceAnswers = ref({})
 const practiceBlankAnswers = ref({})
 const practiceAvailableOptions = ref({})
@@ -85,6 +88,13 @@ function checkPracticeInteractive(quizIndex, quiz) {
   practiceAnswers.value[quizIndex] = {
     selected: 'checked',
     isCorrect: correct,
+  }
+
+  // Emit events for heart system
+  if (correct) {
+    emit('correct-answer')
+  } else {
+    emit('wrong-answer')
   }
 }
 

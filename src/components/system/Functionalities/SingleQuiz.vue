@@ -8,13 +8,24 @@ const props = defineProps({
   },
 })
 
+// Add emit for heart system
+const emit = defineEmits(['wrong-answer', 'correct-answer'])
+
 const selected = ref('')
 const feedback = ref('')
 
 function checkAnswer(option) {
   selected.value = option
-  feedback.value =
-    option === props.quiz.answer ? '✅ Correct! Great job!' : '❌ Not quite. Try again!'
+  const isCorrect = option === props.quiz.answer
+
+  feedback.value = isCorrect ? '✅ Correct! Great job!' : '❌ Not quite. Try again!'
+
+  // Emit events for heart system
+  if (isCorrect) {
+    emit('correct-answer')
+  } else {
+    emit('wrong-answer')
+  }
 }
 </script>
 
