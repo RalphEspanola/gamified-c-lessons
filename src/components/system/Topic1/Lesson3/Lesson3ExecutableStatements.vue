@@ -1,8 +1,10 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 3: Executable Statements (Input & Output)'
 const lessonDescription = 'Master input and output operations'
+const topicId = 1 // Topic 1
+const lessonId = 3 // Lesson 2
 
 const slides = [
   {
@@ -136,6 +138,10 @@ int main() {
 - Format specifiers: %d for int, %f for float, %c for char.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -145,5 +151,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

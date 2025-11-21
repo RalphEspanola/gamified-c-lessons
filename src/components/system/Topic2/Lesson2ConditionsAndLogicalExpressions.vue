@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 2: Conditions and Logical Expressions'
 const lessonDescription = 'Making decisions with conditions and logical operators'
-
+const topicId = 2 // Topic
+const lessonId = 2 // Lesson
 const slides = [
   {
     id: 1,
@@ -187,6 +188,10 @@ int main() {
 - Combining conditions helps build smarter and more precise decisions in your code.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -196,5 +201,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

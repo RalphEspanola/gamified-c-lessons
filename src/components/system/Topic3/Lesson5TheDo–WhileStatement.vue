@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 5: The Do–While Statement'
 const lessonDescription = 'Understanding do-while loops in C programming'
-
+const topicId = 3 // Topic
+const lessonId = 5 // Lesson
 const slides = [
   {
     id: 1,
@@ -213,6 +214,10 @@ Structure:`,
     ],
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -222,5 +227,6 @@ Structure:`,
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

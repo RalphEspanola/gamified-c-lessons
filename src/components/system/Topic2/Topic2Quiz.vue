@@ -1,10 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle =
   'End-of-Topic Quiz: Conditions, Logical Expressions, and Selection Control Structures'
 const lessonDescription = 'Test your understanding of control structures in C'
-
+const topicId = 2
 const slides = [
   {
     id: 1,
@@ -227,6 +227,11 @@ int main() {
     },
   },
 ]
+const { completeQuiz } = useLearningProgress()
+
+function handleLessonComplete() {
+  completeQuiz(topicId)
+}
 </script>
 
 <template>
@@ -236,5 +241,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

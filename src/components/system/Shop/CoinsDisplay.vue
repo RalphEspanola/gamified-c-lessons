@@ -1,5 +1,5 @@
 <script setup>
-import { useShop } from '@/composables/useShop'
+import { useShop } from '@/composables/system/useShop'
 
 const { coins } = useShop()
 </script>

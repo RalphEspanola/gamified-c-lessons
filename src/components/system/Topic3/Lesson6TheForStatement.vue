@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 6: The For Statement'
 const lessonDescription = 'Understanding for loops in C programming'
-
+const topicId = 3 // Topic
+const lessonId = 6 // Lesson
 const slides = [
   {
     id: 1,
@@ -190,6 +191,10 @@ int main() {
 • It's cleaner and easier to read than equivalent while loops.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -199,5 +204,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

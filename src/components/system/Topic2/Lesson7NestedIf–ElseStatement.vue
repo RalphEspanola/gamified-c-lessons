@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 7: Nested If–Else Statement'
 const lessonDescription = 'Understanding nested if-else and else-if statements in C'
-
+const topicId = 2 // Topic
+const lessonId = 7 // Lesson
 const slides = [
   {
     id: 1,
@@ -193,6 +194,10 @@ Think of it like:
 👉 If this... else if that... otherwise...`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -202,5 +207,6 @@ Think of it like:
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

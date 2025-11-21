@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 5: Decision Steps in Algorithms'
 const lessonDescription = 'Understanding decision-making in algorithms and C programs'
-
+const topicId = 2 // Topic
+const lessonId = 5 // Lesson
 const slides = [
   {
     id: 1,
@@ -151,6 +152,10 @@ int main() {
 • Decision steps make your program smart and interactive — not just linear.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -160,5 +165,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

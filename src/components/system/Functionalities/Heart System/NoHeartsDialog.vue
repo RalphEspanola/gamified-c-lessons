@@ -1,5 +1,5 @@
 <script setup>
-import { useHearts } from '@/composables/useHearts'
+import { useHearts } from '@/composables/PowerUps/useHearts'
 
 const props = defineProps({
   modelValue: Boolean,

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
-import { useHearts } from '@/composables/useHearts'
+import { useHearts } from '@/composables/PowerUps/useHearts'
 
 const { hearts, MAX_HEARTS, refillHearts, formattedTimeRemaining, canContinue } = useHearts()
 

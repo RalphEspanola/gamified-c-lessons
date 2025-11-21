@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 6: Common Programming Errors'
 const lessonDescription = 'Understanding and fixing programming errors in C'
-
+const topicId = 1 // Topic 1
+const lessonId = 6 // Lesson 2
 const slides = [
   {
     id: 1,
@@ -154,6 +155,10 @@ int main() {
 • Debugging = finding and fixing these errors.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -163,5 +168,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

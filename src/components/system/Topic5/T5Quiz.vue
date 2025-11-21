@@ -1,9 +1,9 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'END OF TOPIC QUIZ — Topic 5: Array and String Manipulations'
 const lessonDescription = 'Test your understanding of arrays and string operations'
-
+const topicId = 4
 const slides = [
   {
     id: 1,
@@ -257,6 +257,11 @@ strcmp() compares two strings.
 It returns 0 when the strings are equal, so the condition becomes true.`,
   },
 ]
+const { completeQuiz } = useLearningProgress()
+
+function handleLessonComplete() {
+  completeQuiz(topicId)
+}
 </script>
 
 <template>
@@ -266,5 +271,6 @@ It returns 0 when the strings are equal, so the condition becomes true.`,
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

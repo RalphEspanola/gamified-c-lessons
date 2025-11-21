@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 2: An Overview of User-Defined Functions'
 const lessonDescription = 'Understanding user-defined functions in C programming'
-
+const topicId = 4 // Topic
+const lessonId = 2 // Lesson
 const slides = [
   {
     id: 1,
@@ -206,6 +207,10 @@ void welcome() {  // Function Definition
 • User-defined functions make programs organized, reusable, and modular.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -215,5 +220,6 @@ void welcome() {  // Function Definition
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

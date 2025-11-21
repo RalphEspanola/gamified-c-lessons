@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useHearts } from './useHearts'
+import { useHearts } from '../useHearts'
 
 // Power-ups inventory with default values
 const powerUps = ref({
@@ -27,7 +27,7 @@ export function useShop() {
 
       if (savedPowerUps !== null) {
         const loaded = JSON.parse(savedPowerUps)
-        // Merge with defaults to ensure answerProtect exists
+        // Merge with defaults to ensure all power-ups exist
         powerUps.value = {
           streakSaver: loaded.streakSaver || 0,
           doubleXP: loaded.doubleXP || 0,
@@ -154,17 +154,7 @@ export function useShop() {
       color: 'yellow',
       owned: powerUps.value.doubleXP,
     },
-    {
-      id: 'hint-reveal',
-      name: 'Hint Reveal',
-      description: 'Get a hint for any question',
-      icon: 'mdi-lightbulb-on',
-      price: 15,
-      type: 'powerup',
-      category: 'Power-ups',
-      color: 'purple',
-      owned: powerUps.value.hintReveal,
-    },
+
     {
       id: 'answer-protect',
       name: 'Answer Protection',

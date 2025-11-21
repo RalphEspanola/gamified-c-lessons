@@ -36,6 +36,8 @@ import T5L3MultidimensionalArrays from '@/components/system/Topic5/T5L3Multidime
 import T5L4BasicStringManipulations from '@/components/system/Topic5/T5L4BasicStringManipulations.vue'
 import T5Quiz from '@/components/system/Topic5/T5Quiz.vue'
 import ShopPage from '@/views/ShopPage.vue'
+import LoginView from '@/views/auth/LoginView.vue'
+import RegisterView from '@/views/auth/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -224,6 +226,16 @@ const router = createRouter({
       path: '/shop',
       name: 'shop',
       component: ShopPage,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
     },
   ],
 })

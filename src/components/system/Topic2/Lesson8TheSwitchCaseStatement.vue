@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 8: The Switch Case Statement'
 const lessonDescription = 'Understanding switch-case statements in C programming'
-
+const topicId = 2 // Topic
+const lessonId = 8 // Lesson
 const slides = [
   {
     id: 1,
@@ -251,6 +252,10 @@ int main() {
 • Best used when testing a single variable against many constant values.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -260,5 +265,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

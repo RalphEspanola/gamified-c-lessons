@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 6: The If–Else Statement'
 const lessonDescription = 'Understanding if-else statements in C programming'
-
+const topicId = 2 // Topic
+const lessonId = 6 // Lesson
 const slides = [
   {
     id: 1,
@@ -168,6 +169,10 @@ int main() {
 Think of it as "If this happens — do this, else — do that."`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -177,5 +182,6 @@ Think of it as "If this happens — do this, else — do that."`,
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

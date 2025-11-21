@@ -1,10 +1,26 @@
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
-const learningProgress = ref({
-  completedLessons: 12,
-  totalLessons: 20,
-  percentage: 60,
+// Get topics and reactive lessons
+const { topics } = useLearningProgress()
+
+// Compute total lessons and completed lessons
+const totalLessons = computed(() =>
+  topics.value.reduce((sum, topic) => sum + topic.lessons.length, 0),
+)
+
+const completedLessons = computed(() =>
+  topics.value.reduce(
+    (sum, topic) => sum + topic.lessons.filter((l) => l.status === 'completed').length,
+    0,
+  ),
+)
+
+// Compute percentage
+const percentage = computed(() => {
+  if (totalLessons.value === 0) return 0
+  return Math.round((completedLessons.value / totalLessons.value) * 100)
 })
 </script>
 
@@ -15,7 +31,7 @@ const learningProgress = ref({
         <v-icon color="blue" size="32" class="mr-2">mdi-book-open-variant</v-icon>
         <div>
           <div class="text-caption text-grey">Learning Progress</div>
-          <div class="text-h5 font-weight-bold">{{ learningProgress.percentage }}%</div>
+          <div class="text-h5 font-weight-bold">{{ percentage }}%</div>
         </div>
       </div>
 
@@ -23,19 +39,18 @@ const learningProgress = ref({
 
       <div class="mb-2">
         <v-progress-circular
-          :model-value="learningProgress.percentage"
+          :model-value="percentage"
           :size="80"
           :width="8"
           color="blue"
           class="d-block mx-auto"
         >
-          <span class="text-h6 font-weight-bold mt-5 ml-2">{{ learningProgress.percentage }}%</span>
+          <span class="text-h6 font-weight-bold mt-5 ml-2">{{ percentage }}%</span>
         </v-progress-circular>
       </div>
 
       <div class="text-caption text-grey text-center mt-3">
-        {{ learningProgress.completedLessons }} of {{ learningProgress.totalLessons }} lessons
-        completed
+        {{ completedLessons }} of {{ totalLessons }} lessons completed
       </div>
     </v-card>
   </v-col>

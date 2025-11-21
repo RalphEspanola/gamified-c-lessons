@@ -8,13 +8,13 @@ const props = defineProps({
   },
 })
 
-// Add emit for heart system
-const emit = defineEmits(['wrong-answer', 'correct-answer'])
+const emit = defineEmits(['wrong-answer', 'correct-answer', 'use-show-answer'])
 
 const practiceAnswers = ref({})
 const practiceBlankAnswers = ref({})
 const practiceAvailableOptions = ref({})
 
+// Initialize available options
 function initPracticeInteractive(quizIndex, quiz) {
   if (!practiceBlankAnswers.value[quizIndex]) {
     practiceBlankAnswers.value[quizIndex] = {}
@@ -24,6 +24,7 @@ function initPracticeInteractive(quizIndex, quiz) {
   }
 }
 
+// Selecting an option
 function selectPracticeOption(quizIndex, blankId, option) {
   if (!blankId) return
 
@@ -31,7 +32,7 @@ function selectPracticeOption(quizIndex, blankId, option) {
     practiceBlankAnswers.value[quizIndex] = {}
   }
 
-  // Return previous answer to options if exists
+  // Return old answer if exists
   if (practiceBlankAnswers.value[quizIndex][blankId]) {
     practiceAvailableOptions.value[quizIndex].push(practiceBlankAnswers.value[quizIndex][blankId])
   }
@@ -39,41 +40,37 @@ function selectPracticeOption(quizIndex, blankId, option) {
   // Set new answer
   practiceBlankAnswers.value[quizIndex][blankId] = option
 
-  // Remove selected option from available options
+  // Remove from available options
   const index = practiceAvailableOptions.value[quizIndex].indexOf(option)
   if (index > -1) {
     practiceAvailableOptions.value[quizIndex].splice(index, 1)
   }
 
-  // Trigger reactivity
   triggerRef(practiceBlankAnswers)
   triggerRef(practiceAvailableOptions)
 
-  // Clear check result
   if (practiceAnswers.value[quizIndex]) {
     delete practiceAnswers.value[quizIndex]
   }
 }
 
+// Removing an answer from a blank
 function removePracticeBlank(quizIndex, blankId) {
   if (practiceBlankAnswers.value[quizIndex]?.[blankId]) {
-    // Return option to available options
     practiceAvailableOptions.value[quizIndex].push(practiceBlankAnswers.value[quizIndex][blankId])
 
-    // Remove the blank answer
     delete practiceBlankAnswers.value[quizIndex][blankId]
 
-    // Trigger reactivity
     triggerRef(practiceBlankAnswers)
     triggerRef(practiceAvailableOptions)
 
-    // Clear check result
     if (practiceAnswers.value[quizIndex]) {
       delete practiceAnswers.value[quizIndex]
     }
   }
 }
 
+// Check if answers are correct
 function checkPracticeInteractive(quizIndex, quiz) {
   const blanks = quiz.blanks
   let correct = true
@@ -90,45 +87,71 @@ function checkPracticeInteractive(quizIndex, quiz) {
     isCorrect: correct,
   }
 
-  // Emit events for heart system
-  if (correct) {
-    emit('correct-answer')
-  } else {
-    emit('wrong-answer')
-  }
+  if (correct) emit('correct-answer')
+  else emit('wrong-answer')
 }
 
+// Fill status
 function isPracticeComplete(quizIndex, quiz) {
   if (!quiz.blanks) return false
   return quiz.blanks.every((blank) => practiceBlankAnswers.value[quizIndex]?.[blank.id])
 }
 
+// Render user-filled template
 function getPracticeFilledTemplate(quizIndex, quiz) {
   if (!quiz.template) return ''
 
   let template = quiz.template
-  if (quiz.blanks) {
-    quiz.blanks.forEach((blank) => {
-      const value = practiceBlankAnswers.value[quizIndex]?.[blank.id]
-      const displayValue = value ? value : `[${blank.id}]`
-      template = template.replace(`[${blank.id}]`, displayValue)
-    })
-  }
+  quiz.blanks.forEach((blank) => {
+    const val = practiceBlankAnswers.value[quizIndex]?.[blank.id]
+    template = template.replace(`[${blank.id}]`, val || `[${blank.id}]`)
+  })
 
   return template
 }
 
+// Render correct template
 function getCorrectTemplate(quiz) {
   if (!quiz.template) return ''
 
   let template = quiz.template
-  if (quiz.blanks) {
-    quiz.blanks.forEach((blank) => {
-      template = template.replace(`[${blank.id}]`, blank.answer)
-    })
-  }
+  quiz.blanks.forEach((blank) => {
+    template = template.replace(`[${blank.id}]`, blank.answer)
+  })
 
   return template
+}
+
+// ✅ Power-up: Reveal ONE correct answer at a time
+function revealOneAnswer(quizIndex, quiz) {
+  const blanks = quiz.blanks
+
+  const targetBlank = blanks.find((blank) => {
+    const current = practiceBlankAnswers.value[quizIndex]?.[blank.id]
+    return current !== blank.answer
+  })
+
+  if (!targetBlank) return
+
+  if (!practiceBlankAnswers.value[quizIndex]) {
+    practiceBlankAnswers.value[quizIndex] = {}
+  }
+
+  practiceBlankAnswers.value[quizIndex][targetBlank.id] = targetBlank.answer
+
+  const idx = practiceAvailableOptions.value[quizIndex]?.indexOf(targetBlank.answer)
+  if (idx > -1) {
+    practiceAvailableOptions.value[quizIndex].splice(idx, 1)
+  }
+
+  triggerRef(practiceBlankAnswers)
+  triggerRef(practiceAvailableOptions)
+
+  emit('use-show-answer', {
+    quizIndex,
+    blankId: targetBlank.id,
+    cost: 3,
+  })
 }
 </script>
 
@@ -137,14 +160,14 @@ function getCorrectTemplate(quiz) {
     <div v-for="(quiz, index) in quizzes" :key="index" class="mb-6">
       <h3 class="text-h6 mb-3">❓ {{ quiz.question }}</h3>
 
-      <!-- Interactive fill-in-the-blank -->
+      <!-- Interactive mode -->
       <div v-if="quiz.interactive">
-        <!-- Template Preview -->
+        <!-- Template preview -->
         <v-card color="grey-lighten-4" class="pa-3 mb-3">
           <code>{{ getPracticeFilledTemplate(index, quiz) }}</code>
         </v-card>
 
-        <!-- Blank Slots -->
+        <!-- Blanks -->
         <div class="mb-3">
           <div class="text-caption mb-2">Fill in the blanks:</div>
           <div class="d-flex flex-wrap gap-1">
@@ -173,6 +196,7 @@ function getCorrectTemplate(quiz) {
         <!-- Options -->
         <div class="mb-2">
           <div class="text-caption mb-1">Options:</div>
+
           <v-chip
             v-for="(option, optIdx) in (() => {
               initPracticeInteractive(index, quiz)
@@ -195,19 +219,30 @@ function getCorrectTemplate(quiz) {
           </v-chip>
         </div>
 
-        <!-- Check Button -->
+        <!-- ✅ Show Answer Button -->
+        <v-btn
+          color="deep-purple-accent-3"
+          variant="tonal"
+          size="small"
+          class="mt-2"
+          @click="revealOneAnswer(index, quiz)"
+        >
+          Show Answer (3 coins)
+        </v-btn>
+
+        <!-- Check Answer -->
         <v-btn
           color="success"
           size="small"
+          class="mt-2 ml-2"
           @click="checkPracticeInteractive(index, quiz)"
           :disabled="!isPracticeComplete(index, quiz)"
-          class="mt-2"
         >
           Check Answer
         </v-btn>
       </div>
 
-      <!-- Feedback Alert -->
+      <!-- Feedback -->
       <v-alert
         v-if="practiceAnswers[index]"
         :type="practiceAnswers[index].isCorrect ? 'success' : 'info'"
@@ -215,8 +250,9 @@ function getCorrectTemplate(quiz) {
         variant="tonal"
       >
         <div v-if="practiceAnswers[index].isCorrect">✅ Correct!</div>
+
         <div v-else>
-          <div class="mb-2">💡 Not quite right. The correct answer is:</div>
+          <div class="mb-2">💡 Not quite right. The correct answer:</div>
           <v-card color="white" class="pa-2">
             <code>{{ getCorrectTemplate(quiz) }}</code>
           </v-card>
@@ -232,7 +268,6 @@ function getCorrectTemplate(quiz) {
 .gap-1 {
   gap: 4px;
 }
-
 .cursor-pointer {
   cursor: pointer;
 }

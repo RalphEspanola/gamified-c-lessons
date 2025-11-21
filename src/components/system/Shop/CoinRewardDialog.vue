@@ -1,22 +1,75 @@
+.coin-reward { background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%); border: 2px solid
+#ffc107; } .heart-reward { background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); border:
+2px solid #ff5252; } .xp-reward { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+border: 2px solid #667eea; }
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useXP } from '@/composables/system/useXP'
+import { useDoubleXP } from '@/composables/PowerUps/useDoubleXP'
 
+// Props
 const props = defineProps({
   modelValue: Boolean,
-  coinsEarned: Number,
+  xpEarned: Number,
   perfectScore: Boolean,
 })
 
 const emit = defineEmits(['update:modelValue', 'continue'])
 
-const showConfetti = ref(false)
+// XP composable
+const { addXP } = useXP()
 
-onMounted(() => {
-  if (props.modelValue) {
-    showConfetti.value = true
-  }
-})
+// Double XP composable
+const { isDoubleXPActive, consumeDoubleXP } = useDoubleXP()
 
+// Track if XP was already given to avoid duplicates
+const xpGiven = ref(false)
+
+// XP breakdown
+const baseXP = computed(() => props.xpEarned || 100)
+const bonusXP = computed(() => (props.perfectScore ? 50 : 0))
+
+// Coins earned
+const coinsEarned = computed(() => (props.perfectScore ? 20 : 10))
+
+// Hearts earned (always 1)
+const heartsEarned = 1
+
+// XP to display in dialog
+const displayXP = ref(0)
+
+// Watch dialog open to give XP
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (!isOpen) {
+      xpGiven.value = false
+      displayXP.value = 0
+      return
+    }
+
+    if (!xpGiven.value) {
+      // Compute total XP
+      let xpToAdd = baseXP.value + bonusXP.value
+
+      // Double XP logic
+      if (isDoubleXPActive.value) {
+        xpToAdd *= 2
+        consumeDoubleXP() // Consume the double XP boost
+        console.log('🔥 DOUBLE XP applied — final XP:', xpToAdd)
+      }
+
+      // Update display and add XP
+      displayXP.value = xpToAdd
+      addXP(xpToAdd)
+      xpGiven.value = true
+
+      console.log('XP added:', xpToAdd)
+    }
+  },
+)
+
+// Continue button
 const continueToNext = () => {
   emit('update:modelValue', false)
   emit('continue')
@@ -24,113 +77,164 @@ const continueToNext = () => {
 </script>
 
 <template>
-  <v-dialog :model-value="modelValue" persistent max-width="500">
-    <v-card>
-      <v-card-title class="text-center pa-6 bg-amber-lighten-4">
-        <div class="d-flex flex-column align-center">
-          <v-icon size="100" color="amber" class="coin-bounce">mdi-coin</v-icon>
-          <div class="text-h5 mt-4 font-weight-bold">Lesson Complete!</div>
-        </div>
-      </v-card-title>
+  <v-dialog :model-value="modelValue" persistent max-width="450">
+    <v-card class="completion-card">
+      <!-- Header -->
+      <div class="completion-header">
+        <v-icon size="80" color="amber" class="icon-bounce">mdi-star-circle</v-icon>
+        <h1 class="completion-title">Lesson Complete!</h1>
+      </div>
 
-      <v-card-text class="pa-6">
-        <!-- Coins Earned -->
-        <div class="text-center mb-4">
-          <v-chip color="amber" size="x-large" class="px-6 py-6">
-            <v-icon start size="30">mdi-coin</v-icon>
-            <span class="text-h4 font-weight-bold">+{{ coinsEarned }}</span>
-          </v-chip>
-        </div>
-
-        <!-- Breakdown -->
-        <v-list class="bg-transparent mb-4">
-          <v-list-item>
-            <template v-slot:prepend>
-              <v-icon color="success">mdi-check-circle</v-icon>
-            </template>
-            <v-list-item-title>Lesson Completion</v-list-item-title>
-            <template v-slot:append>
-              <div class="d-flex align-center gap-1">
-                <v-icon size="small" color="amber">mdi-coin</v-icon>
-                <span class="font-weight-bold">+10</span>
-              </div>
-            </template>
-          </v-list-item>
-
-          <v-list-item v-if="perfectScore">
-            <template v-slot:prepend>
-              <v-icon color="success">mdi-star</v-icon>
-            </template>
-            <v-list-item-title>Perfect Score Bonus!</v-list-item-title>
-            <template v-slot:append>
-              <div class="d-flex align-center gap-1">
-                <v-icon size="small" color="amber">mdi-coin</v-icon>
-                <span class="font-weight-bold">+10</span>
-              </div>
-            </template>
-          </v-list-item>
-
-          <v-list-item>
-            <template v-slot:prepend>
-              <v-icon color="red">mdi-heart-plus</v-icon>
-            </template>
-            <v-list-item-title>Heart Restored</v-list-item-title>
-            <template v-slot:append>
-              <v-icon color="red">mdi-heart</v-icon>
-            </template>
-          </v-list-item>
-        </v-list>
-
-        <!-- Perfect Score Badge -->
-        <v-alert v-if="perfectScore" type="success" variant="tonal" class="mb-4">
-          <div class="d-flex align-center gap-2">
-            <v-icon>mdi-trophy</v-icon>
-            <div>
-              <div class="font-weight-bold">Perfect Score!</div>
-              <div class="text-caption">You answered all questions correctly!</div>
-            </div>
+      <!-- Rewards -->
+      <div class="rewards-container">
+        <!-- Coins Reward -->
+        <div class="reward-item coin-reward">
+          <v-icon size="40" color="amber">mdi-coin</v-icon>
+          <div class="reward-content">
+            <span class="reward-label">Coins Earned</span>
+            <span class="reward-value">+{{ coinsEarned }}</span>
           </div>
-        </v-alert>
+        </div>
 
-        <!-- Shop Hint -->
-        <v-card color="blue-lighten-5" class="pa-4" elevation="0">
-          <div class="d-flex align-center gap-3">
-            <v-icon color="primary" size="40">mdi-store</v-icon>
-            <div class="text-caption">
-              <strong>Visit the Shop</strong> to spend your coins on power-ups and heart refills!
-            </div>
+        <!-- Hearts Reward -->
+        <div class="reward-item heart-reward">
+          <v-icon size="40" color="red">mdi-heart</v-icon>
+          <div class="reward-content">
+            <span class="reward-label">Hearts Earned</span>
+            <span class="reward-value">+{{ heartsEarned }}</span>
           </div>
-        </v-card>
-      </v-card-text>
+        </div>
 
-      <v-card-actions class="pa-6 pt-0">
+        <!-- XP Reward -->
+        <div class="reward-item xp-reward">
+          <v-icon size="40" color="indigo">mdi-lightning-bolt</v-icon>
+          <div class="reward-content">
+            <span class="reward-label">Experience Points</span>
+            <span class="reward-value">+{{ displayXP }} XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Continue Button -->
+      <div class="button-container">
         <v-btn
           color="primary"
-          variant="elevated"
           size="large"
           block
-          prepend-icon="mdi-arrow-right"
+          append-icon="mdi-arrow-right"
           @click="continueToNext"
+          class="continue-btn"
         >
           Continue
         </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
   </v-dialog>
 </template>
 
 <style scoped>
-@keyframes coinBounce {
+.completion-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.completion-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.icon-bounce {
+  animation: bounce 2s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes bounce {
   0%,
   100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-20px) rotate(180deg);
+    transform: translateY(-16px) scale(1.1);
   }
 }
 
-.coin-bounce {
-  animation: coinBounce 1s ease-in-out infinite;
+.completion-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.rewards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 20px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.reward-item:hover {
+  transform: translateX(4px);
+}
+
+.coin-reward {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%);
+  border: 2px solid #ffc107;
+}
+
+.xp-reward {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+  border: 2px solid #667eea;
+}
+
+.reward-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reward-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+.reward-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.button-container {
+  padding: 20px;
+}
+
+.continue-btn {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.continue-btn:hover {
+  transform: scale(1.02);
 }
 </style>

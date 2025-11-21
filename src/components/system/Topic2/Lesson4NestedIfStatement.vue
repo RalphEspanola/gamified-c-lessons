@@ -1,8 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 4: Nested If Statement'
 const lessonDescription = 'Making complex decisions with nested if statements'
-
+const topicId = 2 // Topic
+const lessonId = 4 // Lesson
 const slides = [
   {
     id: 1,
@@ -187,6 +189,10 @@ int main() {
 - Proper indentation makes nested code easier to read and debug.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -196,5 +202,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

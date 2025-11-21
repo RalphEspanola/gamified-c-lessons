@@ -1,9 +1,9 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'End-of-Topic Quiz: Topic 4 — Functions'
 const lessonDescription = 'Test your understanding of functions in C programming'
-
+const topicId = 4
 const slides = [
   {
     id: 1,
@@ -208,6 +208,11 @@ int main() {
     },
   },
 ]
+const { completeQuiz } = useLearningProgress()
+
+function handleLessonComplete() {
+  completeQuiz(topicId)
+}
 </script>
 
 <template>
@@ -217,5 +222,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

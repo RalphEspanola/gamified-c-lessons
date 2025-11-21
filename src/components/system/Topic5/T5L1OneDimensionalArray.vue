@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 1: One-Dimensional Array'
 const lessonDescription = 'Understanding one-dimensional arrays in C programming'
-
+const topicId = 5 // Topic
+const lessonId = 1 // Lesson
 const slides = [
   {
     id: 1,
@@ -211,6 +212,10 @@ int main() {
 • Accessing elements outside the array size may cause errors or unexpected results.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -220,5 +225,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

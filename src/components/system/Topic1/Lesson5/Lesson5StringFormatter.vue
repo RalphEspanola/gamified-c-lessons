@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 5: String Formatter'
 const lessonDescription = 'Understanding format specifiers in C'
-
+const topicId = 1 // Topic
+const lessonId = 5 // Lesson
 const slides = [
   {
     id: 1,
@@ -145,6 +146,10 @@ int main() {
 • Always match the specifier to the variable type.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -154,5 +159,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

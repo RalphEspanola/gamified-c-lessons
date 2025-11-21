@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 4: Parameters'
 const lessonDescription = 'Understanding function parameters in C programming'
-
+const topicId = 4 // Topic
+const lessonId = 4 // Lesson
 const slides = [
   {
     id: 1,
@@ -209,6 +210,10 @@ void displayInfo(char name[], int age) {
 • Parameters make functions flexible, reusable, and dynamic.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -218,5 +223,6 @@ void displayInfo(char name[], int age) {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

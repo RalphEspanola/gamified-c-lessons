@@ -1,9 +1,14 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
+// Lesson info
 const lessonTitle = 'Lesson 1: Elements of a C Program'
 const lessonDescription = 'Learn the basic structure of C programs'
+const topicId = 1
+const lessonId = 1
 
+// Slides data
 const slides = [
   {
     id: 1,
@@ -101,6 +106,10 @@ int main() {
 • All statements must end with a semicolon (;).`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -110,5 +119,6 @@ int main() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

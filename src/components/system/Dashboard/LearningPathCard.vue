@@ -1,23 +1,28 @@
 <script setup>
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { topic1 } from './Data/topic1Data'
-import { topic2 } from './Data/topic2Data'
-import { topic3 } from './Data/topic3Data'
-import { topic4 } from './Data/topic4Data'
-import { topic5 } from './Data/topic5Data'
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
+import { useHearts } from '@/composables/useHearts'
 
 const router = useRouter()
 
-// Combine all topics into an array
-const topicsData = ref([topic1, topic2, topic3, topic4, topic5])
+const { canContinue } = useHearts()
+// 🔹 Use reactive topics from composable
+const { topics } = useLearningProgress()
 
+// Navigate to lesson if not locked AND user has hearts
 const continueLesson = (lesson) => {
-  if (lesson.status !== 'locked') {
-    router.push(lesson.route)
+  if (lesson.status === 'locked') return
+
+  // ❤️ Block access if hearts = 0
+  if (!canContinue.value) {
+    alert('You have no hearts left! Wait for refills or earn more hearts.')
+    return
   }
+
+  router.push(lesson.route)
 }
 
+// Button configuration based on status
 const getButtonConfig = (status) => {
   const configs = {
     completed: { color: 'success', text: 'Review', icon: 'mdi-check-circle' },
@@ -34,7 +39,7 @@ const getButtonConfig = (status) => {
 
     <v-card elevation="2" class="full-height-card">
       <v-expansion-panels>
-        <v-expansion-panel v-for="topic in topicsData" :key="topic.id">
+        <v-expansion-panel v-for="topic in topics" :key="topic.id">
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon color="primary" class="mr-3">{{ topic.icon }}</v-icon>

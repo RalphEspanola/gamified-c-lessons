@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useHearts } from '@/composables/useHearts'
+import { useHearts } from '@/composables/PowerUps/useHearts'
+import { useShop } from '@/composables/system/useShop'
 
 // Functional components
 import CodeBlock from '../Functionalities/CodeBlock.vue'
@@ -13,63 +14,50 @@ import SingleQuiz from '../Functionalities/SingleQuiz.vue'
 import HeartDisplay from '../Functionalities/Heart System/HeartDisplay.vue'
 import NoHeartsDialog from '../Functionalities/Heart System/NoHeartsDialog.vue'
 import CoinRewardDialog from '../Shop/CoinRewardDialog.vue'
+import ShopDialog from '../Shop/ShopDialog.vue'
 
 const router = useRouter()
 
-// Props definition
+// ⭐ Add this
+const emit = defineEmits(['lesson-complete'])
+
+// Props
 const props = defineProps({
-  lessonTitle: {
-    type: String,
-    required: true,
-  },
-  lessonDescription: {
-    type: String,
-    required: true,
-  },
-  slides: {
-    type: Array,
-    required: true,
-  },
-  backRoute: {
-    type: String,
-    default: '/',
-  },
-  completeRoute: {
-    type: String,
-    default: '/',
-  },
+  lessonTitle: { type: String, required: true },
+  lessonDescription: { type: String, required: true },
+  slides: { type: Array, required: true },
+  backRoute: { type: String, default: '/' },
+  completeRoute: { type: String, default: '/' },
 })
 
-// Reactive state
+// Reactive
 const currentSlide = ref(0)
-
-// Hearts system
-const { canContinue, loseHeart, gainHeart } = useHearts()
 const showNoHeartsDialog = ref(false)
+const showShopDialog = ref(false)
 const wrongAnswerCount = ref(0)
+const showCoinRewardDialog = ref(false)
 
-// Computed current slide data
+// Hearts
+const { canContinue, loseHeart, gainHeart } = useHearts()
+
+// Shop
+const { coins, addCoins, shopItems } = useShop()
+
+// Current slide
 const slide = computed(() => props.slides[currentSlide.value])
 
-// Handle wrong answers
 function handleWrongAnswer() {
   wrongAnswerCount.value++
-
-  // Lose heart
   const lost = loseHeart()
-
   if (!canContinue.value && lost) {
     showNoHeartsDialog.value = true
   }
 }
 
-// Handle correct answers
 function handleCorrectAnswer() {
-  // Reset wrong answer count on correct
   wrongAnswerCount.value = 0
 }
 
-// Slide navigation
 function nextSlide() {
   if (currentSlide.value < props.slides.length - 1) {
     currentSlide.value++
@@ -77,9 +65,7 @@ function nextSlide() {
 }
 
 function prevSlide() {
-  if (currentSlide.value > 0) {
-    currentSlide.value--
-  }
+  if (currentSlide.value > 0) currentSlide.value--
 }
 
 function goBack() {
@@ -87,16 +73,33 @@ function goBack() {
 }
 
 function completeLesson() {
-  // Reward with a heart for completing the lesson
+  // Rewards
   gainHeart()
+  addCoins(10)
+
+  // ⭐ Emit event for parent (Learning Path)
+  emit('lesson-complete')
+
+  // Show reward dialog
+  showCoinRewardDialog.value = true
+}
+
+function continueAfterReward() {
   router.push(props.completeRoute)
+}
+
+function openShop() {
+  showShopDialog.value = true
 }
 </script>
 
 <template>
   <v-container class="pa-8" style="max-width: 900px">
-    <!-- Heart Display -->
-    <HeartDisplay class="mb-6" />
+    <!-- Heart + Coins Display -->
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-3">
+      <HeartDisplay />
+      <v-chip color="yellow darken-2" text-color="black" size="large"> {{ coins }} 💰 </v-chip>
+    </div>
 
     <!-- Lesson Header -->
     <div class="mb-6">
@@ -132,30 +135,25 @@ function completeLesson() {
 
           <!-- Dynamic Sections -->
           <ContentSection v-if="slideItem.content" :content="slideItem.content" />
-
           <CodeBlock v-if="slideItem.code" :code="slideItem.code" />
-
           <ExplanationSection
             v-if="slideItem.explanation"
             :explanation="slideItem.explanation"
             :fixed-code="slideItem.fixedCode"
             :code2="slideItem.code2"
           />
-
           <SingleQuiz
             v-if="slideItem.quiz"
             :quiz="slideItem.quiz"
             @wrong-answer="handleWrongAnswer"
             @correct-answer="handleCorrectAnswer"
           />
-
           <MultipleQuiz
             v-if="slideItem.multipleQuiz"
             :quizzes="slideItem.multipleQuiz"
             @wrong-answer="handleWrongAnswer"
             @correct-answer="handleCorrectAnswer"
           />
-
           <CodingTask
             v-if="slideItem.codingTask"
             :task="slideItem.codingTask"
@@ -197,13 +195,14 @@ function completeLesson() {
       </v-btn>
     </div>
 
-    <!-- No Hearts Dialog -->
+    <!-- Dialogs -->
     <NoHeartsDialog v-model="showNoHeartsDialog" />
+    <CoinRewardDialog
+      v-model="showCoinRewardDialog"
+      :xp-earned="100"
+      :perfect-score="false"
+      :coins-earned="10"
+      @continue="continueAfterReward"
+    />
   </v-container>
 </template>
-
-<style scoped>
-.gap-3 {
-  gap: 12px;
-}
-</style>

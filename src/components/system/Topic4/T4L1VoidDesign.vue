@@ -1,9 +1,10 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-
+import { useLearningProgress } from '@/composables/system/useLearningProgress'
 const lessonTitle = 'Lesson 1: Top-Down Structured Design with Void Functions'
 const lessonDescription = 'Understanding structured design and void functions in C'
-
+const topicId = 4 // Topic
+const lessonId = 1 // Lesson
 const slides = [
   {
     id: 1,
@@ -189,6 +190,10 @@ void outro() {
 • Writing modular functions makes code easier to debug, reuse, and maintain.`,
   },
 ]
+const { completeLesson } = useLearningProgress()
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 </script>
 
 <template>
@@ -198,5 +203,6 @@ void outro() {
     :slides="slides"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

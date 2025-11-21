@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useShop } from '@/composables/useShop'
-import { useHearts } from '@/composables/useHearts'
+import { useShop } from '@/composables/system/useShop'
+import { useHearts } from '@/composables/PowerUps/useHearts'
 
 const { coins, shopItems, buyHeartRefill, buyPowerUp, canAfford } = useShop()
 const { hearts, MAX_HEARTS } = useHearts()
@@ -45,13 +45,26 @@ const confirmPurchase = () => {
     const refillType = item.id === 'heart-single' ? 'single' : 'full'
     success = buyHeartRefill(refillType)
   } else if (item.type === 'powerup') {
+    // Complete mapping from shop IDs to powerUps keys
     const powerUpMap = {
-      'time-freeze': 'timeFreeze',
-      'skip-question': 'skipQuestion',
+      'streak-saver': 'streakSaver',
       'double-xp': 'doubleXP',
       'hint-reveal': 'hintReveal',
+      'answer-protect': 'answerProtect',
+      'time-freeze': 'timeFreeze',
+      'skip-question': 'skipQuestion',
     }
-    success = buyPowerUp(powerUpMap[item.id], item.price)
+
+    const powerUpKey = powerUpMap[item.id]
+
+    if (powerUpKey) {
+      success = buyPowerUp(powerUpKey, item.price)
+      console.log(`Purchased ${item.name} (${item.id} -> ${powerUpKey}):`, success)
+    } else {
+      console.error('Unknown power-up ID:', item.id)
+      purchaseError.value = 'Invalid power-up!'
+      return
+    }
   }
 
   if (success) {
