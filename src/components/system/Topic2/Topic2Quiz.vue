@@ -229,18 +229,21 @@ int main() {
 ]
 const { completeQuiz } = useLearningProgress()
 
-function handleLessonComplete() {
+function handleQuizComplete() {
   completeQuiz(topicId)
 }
 </script>
 
 <template>
   <LessonSlides
+    mode="quiz"
     :lesson-title="lessonTitle"
     :lesson-description="lessonDescription"
     :slides="slides"
+    :topic-id="topicId"
+    :lesson-id="0"
     back-route="/"
     complete-route="/"
-    @lesson-complete="handleLessonComplete"
+    @quiz-complete="handleQuizComplete"
   />
 </template>

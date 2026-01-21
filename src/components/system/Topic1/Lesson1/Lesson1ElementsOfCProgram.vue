@@ -2,6 +2,11 @@
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
 import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
+const { completeLesson } = useLearningProgress()
+
+function handleLessonComplete() {
+  completeLesson(topicId, lessonId)
+}
 // Lesson info
 const lessonTitle = 'Lesson 1: Elements of a C Program'
 const lessonDescription = 'Learn the basic structure of C programs'
@@ -106,10 +111,6 @@ int main() {
 • All statements must end with a semicolon (;).`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>
@@ -117,6 +118,8 @@ function handleLessonComplete() {
     :lesson-title="lessonTitle"
     :lesson-description="lessonDescription"
     :slides="slides"
+    :topic-id="topicId"
+    :lesson-id="lessonId"
     back-route="/"
     complete-route="/"
     @lesson-complete="handleLessonComplete"

@@ -1,19 +1,19 @@
 <script setup>
 import { ref, computed } from 'vue'
-
-
+import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 
 const props = defineProps({
-  task: {
-    type: Object,
-    required: true,
-  },
+  task: { type: Object, required: true },
 })
+const emit = defineEmits(['wrong-answer', 'correct-answer', 'use-show-answer'])
 
 const blankAnswers = ref({})
 const availableOptions = ref([...props.task.options])
 const checkResult = ref(null)
+const protectionTriggered = ref(false)
 const showAnswer = ref(false)
+
+const { useProtection } = useAnswerProtection()
 
 function selectOption(blankId, option) {
   if (!blankId) return
@@ -29,6 +29,7 @@ function selectOption(blankId, option) {
   }
 
   checkResult.value = null
+  protectionTriggered.value = false
 }
 
 function removeBlankAnswer(blankId) {
@@ -36,27 +37,51 @@ function removeBlankAnswer(blankId) {
     availableOptions.value.push(blankAnswers.value[blankId])
     delete blankAnswers.value[blankId]
     checkResult.value = null
+    protectionTriggered.value = false
   }
 }
 
 function checkCodingTask() {
   const blanks = props.task.blanks
-  let correct = true
 
+  // 1️⃣ Check if ANY blank is wrong
+  let allCorrect = true
   for (const blank of blanks) {
     if (blankAnswers.value[blank.id] !== blank.answer) {
-      correct = false
+      allCorrect = false
       break
     }
   }
 
-  checkResult.value = correct
+  // 2️⃣ If all correct → no need for protection
+  if (allCorrect) {
+    checkResult.value = true
+    protectionTriggered.value = false
+    emit('correct-answer')
+    return
+  }
+
+  // 3️⃣ Wrong → try Answer Protection ONCE
+  const wasProtected = useProtection()
+
+  if (wasProtected) {
+    // Protection prevents heart loss
+    checkResult.value = false
+    protectionTriggered.value = true
+    return
+  }
+
+  // 4️⃣ No protection → heart deducted
+  checkResult.value = false
+  protectionTriggered.value = false
+  emit('wrong-answer')
 }
 
 function resetCodingTask() {
   blankAnswers.value = {}
   availableOptions.value = [...props.task.options]
   checkResult.value = null
+  protectionTriggered.value = false
 }
 
 function toggleAnswer() {
@@ -74,7 +99,6 @@ const getFilledTemplate = computed(() => {
     const displayValue = value ? value : `[${blank.id}]`
     template = template.replace(`[${blank.id}]`, displayValue)
   })
-
   return template
 })
 </script>
@@ -156,12 +180,13 @@ const getFilledTemplate = computed(() => {
 
     <!-- Result Alert -->
     <v-alert
-      v-if="checkResult !== null"
-      :type="checkResult ? 'success' : 'error'"
+      v-if="checkResult !== null || protectionTriggered"
+      :type="checkResult ? 'success' : protectionTriggered ? 'info' : 'error'"
       variant="tonal"
       class="mb-3"
     >
       <div v-if="checkResult">✅ Excellent! Your code is correct!</div>
+      <div v-else-if="protectionTriggered">🛡️ Answer Protection saved you! No heart lost.</div>
       <div v-else>❌ Some blanks are incorrect. Try again!</div>
     </v-alert>
 

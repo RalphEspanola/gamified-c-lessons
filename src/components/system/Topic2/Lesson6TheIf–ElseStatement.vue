@@ -180,6 +180,8 @@ function handleLessonComplete() {
     :lesson-title="lessonTitle"
     :lesson-description="lessonDescription"
     :slides="slides"
+    :topic-id="topicId"
+    :lesson-id="lessonId"
     back-route="/"
     complete-route="/"
     @lesson-complete="handleLessonComplete"

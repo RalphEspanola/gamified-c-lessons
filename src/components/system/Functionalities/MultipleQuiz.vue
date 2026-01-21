@@ -1,5 +1,6 @@
 <script setup>
 import { ref, triggerRef } from 'vue'
+import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 
 const props = defineProps({
   quizzes: {
@@ -13,6 +14,9 @@ const emit = defineEmits(['wrong-answer', 'correct-answer', 'use-show-answer'])
 const practiceAnswers = ref({})
 const practiceBlankAnswers = ref({})
 const practiceAvailableOptions = ref({})
+
+// Answer Protection
+const { useProtection } = useAnswerProtection()
 
 // Initialize available options
 function initPracticeInteractive(quizIndex, quiz) {
@@ -70,27 +74,53 @@ function removePracticeBlank(quizIndex, blankId) {
   }
 }
 
-// Check if answers are correct
+// Check if answers are correct (Answer Protection is used here)
 function checkPracticeInteractive(quizIndex, quiz) {
   const blanks = quiz.blanks
-  let correct = true
 
+  // 1️⃣ Check if ANY blank is wrong — ONE TIME ONLY
+  let allCorrect = true
   for (const blank of blanks) {
-    if (practiceBlankAnswers.value[quizIndex]?.[blank.id] !== blank.answer) {
-      correct = false
+    const userAnswer = practiceBlankAnswers.value[quizIndex]?.[blank.id]
+    if (userAnswer !== blank.answer) {
+      allCorrect = false
       break
     }
   }
 
-  practiceAnswers.value[quizIndex] = {
-    selected: 'checked',
-    isCorrect: correct,
+  // 2️⃣ If everything is correct
+  if (allCorrect) {
+    practiceAnswers.value[quizIndex] = {
+      selected: 'checked',
+      isCorrect: true,
+      protectionTriggered: false,
+    }
+    emit('correct-answer')
+    return
   }
 
-  if (correct) emit('correct-answer')
-  else emit('wrong-answer')
-}
+  // 3️⃣ If wrong → try protection ONE TIME (not inside loop)
+  const protectedOnce = useProtection()
 
+  if (protectedOnce) {
+    // Protection saves the user → NO HEART LOST
+    practiceAnswers.value[quizIndex] = {
+      selected: 'checked',
+      isCorrect: false,
+      protectionTriggered: true,
+    }
+    return
+  }
+
+  // 4️⃣ No protection → heart is deducted once
+  practiceAnswers.value[quizIndex] = {
+    selected: 'checked',
+    isCorrect: false,
+    protectionTriggered: false,
+  }
+
+  emit('wrong-answer')
+}
 // Fill status
 function isPracticeComplete(quizIndex, quiz) {
   if (!quiz.blanks) return false
@@ -122,7 +152,7 @@ function getCorrectTemplate(quiz) {
   return template
 }
 
-// ✅ Power-up: Reveal ONE correct answer at a time
+// Reveal one answer (power-up)
 function revealOneAnswer(quizIndex, quiz) {
   const blanks = quiz.blanks
 
@@ -178,7 +208,9 @@ function revealOneAnswer(quizIndex, quiz) {
                 practiceAnswers[index]
                   ? practiceBlankAnswers[index]?.[blank.id] === blank.answer
                     ? 'success'
-                    : 'error'
+                    : practiceAnswers[index].protectionTriggered
+                      ? 'info'
+                      : 'error'
                   : practiceBlankAnswers[index]?.[blank.id]
                     ? 'primary'
                     : 'grey-lighten-2'
@@ -219,7 +251,7 @@ function revealOneAnswer(quizIndex, quiz) {
           </v-chip>
         </div>
 
-        <!-- ✅ Show Answer Button -->
+        <!-- Show Answer Button -->
         <v-btn
           color="deep-purple-accent-3"
           variant="tonal"
@@ -245,11 +277,21 @@ function revealOneAnswer(quizIndex, quiz) {
       <!-- Feedback -->
       <v-alert
         v-if="practiceAnswers[index]"
-        :type="practiceAnswers[index].isCorrect ? 'success' : 'info'"
+        :type="
+          practiceAnswers[index].isCorrect
+            ? 'success'
+            : practiceAnswers[index].protectionTriggered
+              ? 'info'
+              : 'error'
+        "
         class="mt-3"
         variant="tonal"
       >
         <div v-if="practiceAnswers[index].isCorrect">✅ Correct!</div>
+
+        <div v-else-if="practiceAnswers[index].protectionTriggered">
+          🛡️ Answer Protection saved you! No heart lost.
+        </div>
 
         <div v-else>
           <div class="mb-2">💡 Not quite right. The correct answer:</div>

@@ -10,10 +10,10 @@ const user = ref({
 
 const navItems = [
   { title: 'Dashboard', path: '/', icon: 'mdi-view-dashboard' },
-  { title: 'Lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
+  // { title: 'Lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
   { title: 'Shop', path: '/shop', icon: 'mdi-store', badge: 'NEW' },
   { title: 'Achievements', path: '/achievements', icon: 'mdi-trophy' },
-  { title: 'Leaderboard', path: '/leaderboard', icon: 'mdi-chart-bar' },
+  // { title: 'Leaderboard', path: '/leaderboard', icon: 'mdi-chart-bar' },
 ]
 </script>
 

@@ -1,76 +1,51 @@
-.coin-reward { background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%); border: 2px solid
-#ffc107; } .heart-reward { background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%); border:
-2px solid #ff5252; } .xp-reward { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
-border: 2px solid #667eea; }
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useXP } from '@/composables/system/useXP'
 import { useDoubleXP } from '@/composables/PowerUps/useDoubleXP'
 
-// Props
 const props = defineProps({
   modelValue: Boolean,
-  xpEarned: Number,
-  perfectScore: Boolean,
+  xpEarned: { type: Number, required: true },
+  coinsEarned: { type: Number, required: true },
+  heartsEarned: { type: Number, required: true },
+  perfectScore: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'continue'])
 
-// XP composable
 const { addXP } = useXP()
-
-// Double XP composable
 const { isDoubleXPActive, consumeDoubleXP } = useDoubleXP()
 
-// Track if XP was already given to avoid duplicates
 const xpGiven = ref(false)
-
-// XP breakdown
-const baseXP = computed(() => props.xpEarned || 100)
-const bonusXP = computed(() => (props.perfectScore ? 50 : 0))
-
-// Coins earned
-const coinsEarned = computed(() => (props.perfectScore ? 20 : 10))
-
-// Hearts earned (always 1)
-const heartsEarned = 1
-
-// XP to display in dialog
 const displayXP = ref(0)
 
-// Watch dialog open to give XP
+const bonusXP = computed(() => (props.perfectScore ? 50 : 0))
+
 watch(
   () => props.modelValue,
-  (isOpen) => {
-    if (!isOpen) {
+  (open) => {
+    if (!open) {
       xpGiven.value = false
       displayXP.value = 0
       return
     }
 
-    if (!xpGiven.value) {
-      // Compute total XP
-      let xpToAdd = baseXP.value + bonusXP.value
+    if (xpGiven.value) return
 
-      // Double XP logic
-      if (isDoubleXPActive.value) {
-        xpToAdd *= 2
-        consumeDoubleXP() // Consume the double XP boost
-        console.log('🔥 DOUBLE XP applied — final XP:', xpToAdd)
-      }
+    let totalXP = props.xpEarned + bonusXP.value
 
-      // Update display and add XP
-      displayXP.value = xpToAdd
-      addXP(xpToAdd)
-      xpGiven.value = true
-
-      console.log('XP added:', xpToAdd)
+    if (isDoubleXPActive.value) {
+      totalXP *= 2
+      consumeDoubleXP()
     }
+
+    displayXP.value = totalXP
+    addXP(totalXP)
+    xpGiven.value = true
   },
 )
 
-// Continue button
-const continueToNext = () => {
+function continueNext() {
   emit('update:modelValue', false)
   emit('continue')
 }
@@ -79,55 +54,29 @@ const continueToNext = () => {
 <template>
   <v-dialog :model-value="modelValue" persistent max-width="450">
     <v-card class="completion-card">
-      <!-- Header -->
       <div class="completion-header">
-        <v-icon size="80" color="amber" class="icon-bounce">mdi-star-circle</v-icon>
-        <h1 class="completion-title">Lesson Complete!</h1>
+        <v-icon size="80" color="amber">mdi-star-circle</v-icon>
+        <h1>Lesson Complete!</h1>
       </div>
 
-      <!-- Rewards -->
       <div class="rewards-container">
-        <!-- Coins Reward -->
-        <div class="reward-item coin-reward">
-          <v-icon size="40" color="amber">mdi-coin</v-icon>
-          <div class="reward-content">
-            <span class="reward-label">Coins Earned</span>
-            <span class="reward-value">+{{ coinsEarned }}</span>
-          </div>
+        <div class="reward-item">
+          <v-icon color="amber">mdi-coin</v-icon>
+          <span>+{{ coinsEarned }} Coins</span>
         </div>
 
-        <!-- Hearts Reward -->
-        <div class="reward-item heart-reward">
-          <v-icon size="40" color="red">mdi-heart</v-icon>
-          <div class="reward-content">
-            <span class="reward-label">Hearts Earned</span>
-            <span class="reward-value">+{{ heartsEarned }}</span>
-          </div>
+        <div class="reward-item">
+          <v-icon color="red">mdi-heart</v-icon>
+          <span>+{{ heartsEarned }} Heart</span>
         </div>
 
-        <!-- XP Reward -->
-        <div class="reward-item xp-reward">
-          <v-icon size="40" color="indigo">mdi-lightning-bolt</v-icon>
-          <div class="reward-content">
-            <span class="reward-label">Experience Points</span>
-            <span class="reward-value">+{{ displayXP }} XP</span>
-          </div>
+        <div class="reward-item">
+          <v-icon color="indigo">mdi-lightning-bolt</v-icon>
+          <span>+{{ displayXP }} XP</span>
         </div>
       </div>
 
-      <!-- Continue Button -->
-      <div class="button-container">
-        <v-btn
-          color="primary"
-          size="large"
-          block
-          append-icon="mdi-arrow-right"
-          @click="continueToNext"
-          class="continue-btn"
-        >
-          Continue
-        </v-btn>
-      </div>
+      <v-btn block color="primary" @click="continueNext"> Continue </v-btn>
     </v-card>
   </v-dialog>
 </template>
