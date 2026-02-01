@@ -3,14 +3,20 @@ import TopNavbar from '@/components/layout/TopNavbar.vue'
 import LevelXpCard from '@/components/system/Dashboard/LevelXpCard.vue'
 import LearningProgressCard from '@/components/system/Dashboard/LearningProgressCard.vue'
 import StreakDaysCard from '@/components/system/Dashboard/StreakDaysCard.vue'
-import BadgesEarnedCard from '@/components/system/Dashboard/BadgesEarnedCard.vue'
+// import BadgesEarnedCard from '@/components/system/Dashboard/BadgesEarnedCard.vue'
 import LearningPathCard from '@/components/system/Dashboard/LearningPathCard.vue'
-import BadgesUnlocked from '@/components/system/Dashboard/BadgesUnlocked.vue'
+// import BadgesUnlocked from '@/components/system/Dashboard/BadgesUnlocked.vue'
 import PowerUps from '@/components/system/Dashboard/PowerUps.vue'
+
+/* ================= XP SYSTEM ================= */
+import { useXP } from '@/composables/system/useXP'
+
+const { xp, level, xpToNextLevel, xpProgress } = useXP()
 </script>
 
 <template>
   <TopNavbar />
+
   <v-container class="py-10 mt-15">
     <!-- Welcome Message -->
     <v-row class="mb-6 mt-2">
@@ -21,26 +27,36 @@ import PowerUps from '@/components/system/Dashboard/PowerUps.vue'
         </div>
       </v-col>
     </v-row>
+
+    <!-- Dashboard Cards -->
     <v-row>
-      <!-- Level & XP Card -->
-      <LevelXpCard />
+      <v-col cols="12" md="4" class="d-flex">
+        <!-- Pass reactive XP props to LevelXpCard -->
+        <LevelXpCard
+          class="w-100"
+          :user-level="level"
+          :current-xp="xp"
+          :xp-to-next-level="xpToNextLevel"
+          :xp-progress="xpProgress"
+        />
+      </v-col>
 
-      <!-- Learning Progress Card -->
-      <LearningProgressCard />
+      <v-col cols="12" md="4" class="d-flex">
+        <LearningProgressCard class="w-100" />
+      </v-col>
 
-      <!-- Streak Days Card -->
-      <StreakDaysCard />
-
-      <!-- Badges Earned Card -->
-      <BadgesEarnedCard />
+      <v-col cols="12" md="4" class="d-flex">
+        <StreakDaysCard class="w-100" />
+      </v-col>
     </v-row>
 
     <v-row>
       <v-col cols="12" md="8">
         <LearningPathCard />
       </v-col>
+
       <v-col cols="12" md="4">
-        <BadgesUnlocked />
+        <!-- <BadgesUnlocked /> -->
         <PowerUps />
       </v-col>
     </v-row>
@@ -50,5 +66,6 @@ import PowerUps from '@/components/system/Dashboard/PowerUps.vue'
 <style scoped>
 .v-card {
   height: 100%;
+  width: 100%;
 }
 </style>

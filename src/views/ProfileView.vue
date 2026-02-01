@@ -1,0 +1,87 @@
+<script setup>
+import { ref, computed } from 'vue'
+
+// Temporary user data (replace with Supabase later)
+const user = ref({
+  name: 'Ralph Española',
+  email: 'ralph@email.com',
+  role: 'Student',
+  joinedAt: 'January 2025',
+})
+
+// Initials fallback
+const initials = computed(() => {
+  return user.value.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+})
+
+function editProfile() {
+  console.log('Edit profile clicked')
+  // later: open dialog or route to edit page
+}
+</script>
+
+<template>
+  <v-container style="max-width: 800px" class="py-10">
+    <v-card elevation="4" rounded="xl">
+      <!-- Header -->
+      <v-card-text class="text-center py-8">
+        <v-avatar size="100" color="deep-purple-accent-4">
+          <span class="text-white text-h4 font-weight-bold">
+            {{ initials }}
+          </span>
+        </v-avatar>
+
+        <h2 class="mt-4 font-weight-bold">{{ user.name }}</h2>
+        <p class="text-grey">{{ user.email }}</p>
+
+        <v-chip color="primary" class="mt-2">
+          {{ user.role }}
+        </v-chip>
+      </v-card-text>
+
+      <v-divider />
+
+      <!-- Info Section -->
+      <v-card-text class="px-8">
+        <v-list density="comfortable">
+          <v-list-item>
+            <template #prepend>
+              <v-icon>mdi-calendar</v-icon>
+            </template>
+            <v-list-item-title> Joined </v-list-item-title>
+            <v-list-item-subtitle>
+              {{ user.joinedAt }}
+            </v-list-item-subtitle>
+          </v-list-item>
+
+          <v-list-item>
+            <template #prepend>
+              <v-icon>mdi-school</v-icon>
+            </template>
+            <v-list-item-title> Course </v-list-item-title>
+            <v-list-item-subtitle> Learn ITE 12 </v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+
+      <v-divider />
+
+      <!-- Actions -->
+      <v-card-actions class="px-8 py-6">
+        <v-btn color="primary" variant="outlined" prepend-icon="mdi-pencil" @click="editProfile">
+          Edit Profile
+        </v-btn>
+
+        <v-spacer />
+
+        <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="console.log('logout')">
+          Logout
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-container>
+</template>

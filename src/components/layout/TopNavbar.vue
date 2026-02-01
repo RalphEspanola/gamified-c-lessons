@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import CoinsDisplay from '../system/Shop/CoinsDisplay.vue'
+import UserAvatar from '../system/user/UserAvatar.vue'
 
 // temporary user info
 const user = ref({
@@ -12,7 +13,7 @@ const navItems = [
   { title: 'Dashboard', path: '/', icon: 'mdi-view-dashboard' },
   // { title: 'Lessons', path: '/lessons', icon: 'mdi-format-list-bulleted' },
   { title: 'Shop', path: '/shop', icon: 'mdi-store', badge: 'NEW' },
-  { title: 'Achievements', path: '/achievements', icon: 'mdi-trophy' },
+  // { title: 'Achievements', path: '/achievements', icon: 'mdi-trophy' },
   // { title: 'Leaderboard', path: '/leaderboard', icon: 'mdi-chart-bar' },
 ]
 </script>
@@ -34,11 +35,7 @@ const navItems = [
     <v-spacer></v-spacer>
 
     <!-- User info -->
-    <v-btn icon>
-      <v-avatar color="deep-purple accent-4">
-        <span class="white--text text-subtitle-2">{{ user.initials }}</span>
-      </v-avatar>
-    </v-btn>
+    <UserAvatar />
 
     <CoinsDisplay class="mr-4" />
     <!-- Logout Button

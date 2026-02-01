@@ -1,5 +1,4 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
 import { useXP } from '@/composables/system/useXP'
 import { useDoubleXP } from '@/composables/PowerUps/useDoubleXP'
 
@@ -13,38 +12,25 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'continue'])
 
+// Composables
 const { addXP } = useXP()
 const { isDoubleXPActive, consumeDoubleXP } = useDoubleXP()
 
-const xpGiven = ref(false)
-const displayXP = ref(0)
+// Reward XP immediately when dialog opens
+function rewardXP() {
+  let totalXP = 150 // fixed XP
+  if (props.perfectScore) totalXP += 50
 
-const bonusXP = computed(() => (props.perfectScore ? 50 : 0))
+  if (isDoubleXPActive.value) {
+    totalXP *= 2
+    consumeDoubleXP()
+  }
 
-watch(
-  () => props.modelValue,
-  (open) => {
-    if (!open) {
-      xpGiven.value = false
-      displayXP.value = 0
-      return
-    }
+  addXP(totalXP)
+  return totalXP
+}
 
-    if (xpGiven.value) return
-
-    let totalXP = props.xpEarned + bonusXP.value
-
-    if (isDoubleXPActive.value) {
-      totalXP *= 2
-      consumeDoubleXP()
-    }
-
-    displayXP.value = totalXP
-    addXP(totalXP)
-    xpGiven.value = true
-  },
-)
-
+const rewardedXP = rewardXP()
 function continueNext() {
   emit('update:modelValue', false)
   emit('continue')
@@ -53,31 +39,41 @@ function continueNext() {
 
 <template>
   <v-dialog :model-value="modelValue" persistent max-width="450">
-    <v-card class="completion-card">
-      <div class="completion-header">
-        <v-icon size="80" color="amber">mdi-star-circle</v-icon>
-        <h1>Lesson Complete!</h1>
-      </div>
-
-      <div class="rewards-container">
-        <div class="reward-item">
-          <v-icon color="amber">mdi-coin</v-icon>
-          <span>+{{ coinsEarned }} Coins</span>
+    <transition name="completion-pop">
+      <v-card class="completion-card">
+        <!-- HEADER -->
+        <div class="completion-header">
+          <v-icon size="80" color="amber" class="icon-bounce">mdi-star-circle</v-icon>
+          <h1 class="completion-title">Lesson Complete!</h1>
         </div>
 
-        <div class="reward-item">
-          <v-icon color="red">mdi-heart</v-icon>
-          <span>+{{ heartsEarned }} Heart</span>
+        <!-- REWARDS -->
+        <div class="rewards-container">
+          <!-- Coins -->
+          <div class="reward-item coin-reward">
+            <v-icon color="amber">mdi-coin</v-icon>
+            <span>+{{ props.coinsEarned }} Coins</span>
+          </div>
+
+          <!-- Hearts -->
+          <div class="reward-item heart-reward">
+            <v-icon color="red">mdi-heart</v-icon>
+            <span>+{{ props.heartsEarned }} Heart</span>
+          </div>
+
+          <!-- XP -->
+          <div class="reward-item xp-reward">
+            <v-icon color="indigo">mdi-lightning-bolt</v-icon>
+            <span>+{{ rewardedXP }} XP</span>
+          </div>
         </div>
 
-        <div class="reward-item">
-          <v-icon color="indigo">mdi-lightning-bolt</v-icon>
-          <span>+{{ displayXP }} XP</span>
+        <!-- BUTTON -->
+        <div class="button-container">
+          <v-btn block color="primary" @click="continueNext"> Continue </v-btn>
         </div>
-      </div>
-
-      <v-btn block color="primary" @click="continueNext"> Continue </v-btn>
-    </v-card>
+      </v-card>
+    </transition>
   </v-dialog>
 </template>
 
@@ -87,103 +83,57 @@ function continueNext() {
   overflow: hidden;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
-
 .completion-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px 24px 24px;
+  padding: 32px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  text-align: center;
 }
-
-.icon-bounce {
-  animation: bounce 2s ease-in-out infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-16px) scale(1.1);
-  }
-}
-
 .completion-title {
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  margin: 0;
 }
-
+.icon-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px) scale(1.1);
+  }
+}
 .rewards-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 28px 20px;
 }
-
 .reward-item {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
   border-radius: 12px;
-  transition: all 0.3s ease;
+  font-weight: 600;
 }
-
-.reward-item:hover {
-  transform: translateX(4px);
-}
-
 .coin-reward {
-  background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%);
+  background: linear-gradient(135deg, #fff9e6, #ffe680);
   border: 2px solid #ffc107;
 }
-
+.heart-reward {
+  background: linear-gradient(135deg, #ffe6e6, #ffb3b3);
+  border: 2px solid #ff5252;
+}
 .xp-reward {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+  background: linear-gradient(135deg, #f0f4ff, #e8f0ff);
   border: 2px solid #667eea;
 }
-
-.reward-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.reward-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.7;
-}
-
-.reward-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: inherit;
-}
-
 .button-container {
   padding: 20px;
-}
-
-.continue-btn {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.continue-btn:hover {
-  transform: scale(1.02);
 }
 </style>

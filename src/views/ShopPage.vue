@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import TopNavbar from '@/components/layout/TopNavbar.vue'
 import { useShop } from '@/composables/system/useShop'
 import { useHearts } from '@/composables/PowerUps/useHearts'
 
@@ -79,7 +80,8 @@ const confirmPurchase = () => {
 </script>
 
 <template>
-  <v-container class="pa-8" style="max-width: 1200px">
+  <TopNavbar />
+  <v-container class="pa-8 mt-15" style="max-width: 1200px">
     <!-- Header -->
     <div class="mb-6">
       <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-4">

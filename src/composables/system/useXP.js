@@ -1,52 +1,52 @@
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 
-const xp = ref(0)
-const totalXP = ref(0)
-const level = ref(1)
-
-const XP_PER_LEVEL = 100
-
-// Load once
-try {
-  const data = JSON.parse(localStorage.getItem('xpSystem'))
-  if (data) {
-    xp.value = data.xp ?? 0
-    totalXP.value = data.totalXP ?? 0
-    level.value = data.level ?? 1
-  }
-} catch (e) {
-  console.error('Load failed:', e)
+/* ================= STORAGE HELPERS ================= */
+function loadNumber(key, fallback) {
+  const value = localStorage.getItem(key)
+  return value !== null ? Number(value) : fallback
 }
 
-const saveToStorage = () => {
-  localStorage.setItem(
-    'xpSystem',
-    JSON.stringify({
-      xp: xp.value,
-      totalXP: totalXP.value,
-      level: level.value,
-    }),
-  )
-}
+/* ================= STATE ================= */
+const xp = ref(loadNumber('xp', 0)) // current XP toward level
+const level = ref(loadNumber('level', 1)) // current level
 
-const addXP = (amount) => {
-  totalXP.value += amount
+/* ================= FORMULA ================= */
+const xpToNextLevel = computed(() => level.value * 100)
+
+/* ================= PROGRESS ================= */
+const xpProgress = computed(() => {
+  return Math.min(Math.round((xp.value / xpToNextLevel.value) * 100), 100)
+})
+
+/* ================= ADD XP ================= */
+function addXP(amount) {
+  if (!amount || amount <= 0) return
+
   xp.value += amount
 
-  while (xp.value >= XP_PER_LEVEL) {
-    xp.value -= XP_PER_LEVEL
+  while (xp.value >= xpToNextLevel.value) {
+    xp.value -= xpToNextLevel.value
     level.value++
   }
-
-  saveToStorage()
 }
 
+/* ================= SAVE ================= */
+watch(
+  () => [xp.value, level.value],
+  () => {
+    localStorage.setItem('xp', xp.value.toString())
+    localStorage.setItem('level', level.value.toString())
+  },
+  { deep: true },
+)
+
+/* ================= EXPORT ================= */
 export function useXP() {
   return {
     xp,
-    totalXP,
     level,
-    XP_PER_LEVEL,
+    xpToNextLevel,
+    xpProgress,
     addXP,
   }
 }

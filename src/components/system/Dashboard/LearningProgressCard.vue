@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
+defineOptions({ inheritAttrs: false })
+
 // Get topics and reactive lessons
 const { topics } = useLearningProgress()
 
@@ -25,35 +27,33 @@ const percentage = computed(() => {
 </script>
 
 <template>
-  <v-col cols="12" sm="6" md="3">
-    <v-card elevation="2" class="pa-4">
-      <div class="d-flex align-center mb-3">
-        <v-icon color="blue" size="32" class="mr-2">mdi-book-open-variant</v-icon>
-        <div>
-          <div class="text-caption text-grey">Learning Progress</div>
-          <div class="text-h5 font-weight-bold">{{ percentage }}%</div>
-        </div>
+  <v-card class="w-100 h-100 pa-4" elevation="2" rounded="lg" v-bind="$attrs">
+    <div class="d-flex align-center mb-3">
+      <v-icon color="blue" size="32" class="mr-2">mdi-book-open-variant</v-icon>
+      <div>
+        <div class="text-caption text-grey">Learning Progress</div>
+        <div class="text-h5 font-weight-bold">{{ percentage }}%</div>
       </div>
+    </div>
 
-      <v-divider class="my-3"></v-divider>
+    <v-divider class="my-3"></v-divider>
 
-      <div class="mb-2">
-        <v-progress-circular
-          :model-value="percentage"
-          :size="80"
-          :width="8"
-          color="blue"
-          class="d-block mx-auto"
-        >
-          <span class="text-h6 font-weight-bold mt-5 ml-2">{{ percentage }}%</span>
-        </v-progress-circular>
-      </div>
+    <div class="mb-2">
+      <v-progress-circular
+        :model-value="percentage"
+        :size="80"
+        :width="8"
+        color="blue"
+        class="d-block mx-auto"
+      >
+        <span class="text-h6 font-weight-bold mt-5 ml-2">{{ percentage }}%</span>
+      </v-progress-circular>
+    </div>
 
-      <div class="text-caption text-grey text-center mt-3">
-        {{ completedLessons }} of {{ totalLessons }} lessons completed
-      </div>
-    </v-card>
-  </v-col>
+    <div class="text-caption text-grey text-center mt-3">
+      {{ completedLessons }} of {{ totalLessons }} lessons completed
+    </div>
+  </v-card>
 </template>
 
 <style scoped>
