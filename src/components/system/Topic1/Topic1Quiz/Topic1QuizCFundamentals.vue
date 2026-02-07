@@ -1,12 +1,19 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
 const lessonTitle = 'Topic 1 Quiz: C Fundamentals'
 const lessonDescription = 'Test your understanding of C programming basics'
 
 // Quiz belongs to Topic 1
 const topicId = 1
+
+// ❌ DO NOT import useLearningProgress or call completeQuiz manually
+// ✅ LessonSlides component handles ALL completion logic automatically
+
+// Optional: Add custom logic when quiz completes
+function handleQuizComplete() {
+  console.log('✅ Topic 1 Quiz completed! Topic 2 should now be unlocked.')
+}
 
 const slides = [
   {
@@ -117,12 +124,6 @@ int main() {
     },
   },
 ]
-
-const { completeQuiz } = useLearningProgress()
-
-function handleQuizComplete() {
-  completeQuiz(topicId)
-}
 </script>
 
 <template>
@@ -132,7 +133,6 @@ function handleQuizComplete() {
     :lesson-description="lessonDescription"
     :slides="slides"
     :topic-id="topicId"
-    :lesson-id="0"
     back-route="/"
     complete-route="/"
     @quiz-complete="handleQuizComplete"

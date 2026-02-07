@@ -1,17 +1,40 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/utils/supabase'
 
 const router = useRouter()
 
-// Temporary user info (replace with Supabase later)
-const user = ref({
-  name: 'Ralph Española',
-})
+// User state
+const user = ref(null)
+
+// Menu state
+const menu = ref(false)
+
+// Fetch the authenticated user on mount
+const fetchUser = async () => {
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error || !data.user) {
+    // Not logged in → redirect to login
+    router.push('/login')
+    return
+  }
+
+  const u = data.user
+
+  user.value = {
+    name: u.user_metadata?.name ?? 'User',
+    email: u.email,
+    role: u.user_metadata?.role ?? 'Student',
+  }
+}
+
+onMounted(fetchUser)
 
 // Generate initials
 const initials = computed(() => {
-  if (!user.value.name) return ''
+  if (!user.value?.name) return ''
   return user.value.name
     .split(' ')
     .map((word) => word[0])
@@ -19,21 +42,16 @@ const initials = computed(() => {
     .toUpperCase()
 })
 
-// Menu state
-const menu = ref(false)
-
 // Actions
-function goToProfile() {
+const goToProfile = () => {
   menu.value = false
   router.push('/profile')
 }
 
-function logout() {
+const logout = async () => {
   menu.value = false
-  console.log('Logout clicked')
-  // later:
-  // await supabase.auth.signOut()
-  // router.push('/login')
+  await supabase.auth.signOut()
+  router.push('/login')
 }
 </script>
 
@@ -63,7 +81,7 @@ function logout() {
         <template #prepend>
           <v-icon color="red">mdi-logout</v-icon>
         </template>
-        <v-list-item-title class="text-red"> Logout </v-list-item-title>
+        <v-list-item-title class="text-red">Logout</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>

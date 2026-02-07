@@ -1,13 +1,8 @@
 <script setup>
-import { ref } from 'vue'
 import CoinsDisplay from '../system/Shop/CoinsDisplay.vue'
 import UserAvatar from '../system/user/UserAvatar.vue'
 
 // temporary user info
-const user = ref({
-  name: 'Ralph Española',
-  initials: 'RE',
-})
 
 const navItems = [
   { title: 'Dashboard', path: '/', icon: 'mdi-view-dashboard' },

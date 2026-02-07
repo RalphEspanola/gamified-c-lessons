@@ -1,76 +1,122 @@
-// composables/useStreakSaver.js
+// composables/PowerUps/useStreakSaver.js
 import { ref, computed } from 'vue'
+import { supabase } from '@/utils/supabase'
 
 const streakProtectionActive = ref(false)
 const protectionExpiresAt = ref(null)
 
 export function useStreakSaver() {
-  // Load from storage
-  const loadFromStorage = () => {
+  // 🔹 Check if user actually owns Streak Saver in inventory
+  const hasStreakSaverInInventory = async () => {
     try {
-      const savedProtection = window.localStorage?.getItem('streakProtectionActive')
-      const savedExpiry = window.localStorage?.getItem('streakProtectionExpiry')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return false
 
-      if (savedProtection !== null) {
-        streakProtectionActive.value = savedProtection === 'true'
-      }
-      if (savedExpiry !== null) {
-        protectionExpiresAt.value = parseInt(savedExpiry)
+      const { data } = await supabase
+        .from('user_inventory')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('item_key', 'streak_saver')
+        .single()
 
-        // Check if expired
-        if (protectionExpiresAt.value && Date.now() > protectionExpiresAt.value) {
-          deactivateProtection()
+      return data && data.quantity > 0
+    } catch (error) {
+      console.error('Error checking Streak Saver inventory:', error)
+      return false
+    }
+  }
+
+  // 🔹 Initialize from Supabase
+  const initializeStreakSaver = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('user_powerups')
+        .select('streak_saver_active, streak_saver_expires_at')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data && data.streak_saver_active) {
+        // Verify they actually have it in inventory
+        const hasInventory = await hasStreakSaverInInventory()
+
+        if (hasInventory) {
+          streakProtectionActive.value = true
+          protectionExpiresAt.value = data.streak_saver_expires_at
+            ? new Date(data.streak_saver_expires_at).getTime()
+            : null
+
+          // Check if expired
+          if (protectionExpiresAt.value && Date.now() > protectionExpiresAt.value) {
+            await deactivateProtection()
+          }
+        } else {
+          // They don't have it, deactivate
+          await deactivateProtection()
         }
       }
     } catch (error) {
-      console.warn('Could not load streak protection data')
+      console.error('Error loading streak saver:', error)
     }
   }
 
-  // Save to storage
-  const saveToStorage = () => {
+  // 🔹 Save to Supabase
+  const saveToSupabase = async () => {
     try {
-      window.localStorage?.setItem(
-        'streakProtectionActive',
-        streakProtectionActive.value.toString(),
-      )
-      window.localStorage?.setItem(
-        'streakProtectionExpiry',
-        protectionExpiresAt.value?.toString() || '',
-      )
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      await supabase
+        .from('user_powerups')
+        .update({
+          streak_saver_active: streakProtectionActive.value,
+          streak_saver_expires_at: protectionExpiresAt.value
+            ? new Date(protectionExpiresAt.value).toISOString()
+            : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
     } catch (error) {
-      console.warn('Could not save streak protection data')
+      console.error('Error saving streak saver:', error)
     }
   }
 
-  // Initialize
-  loadFromStorage()
+  const activateStreakSaver = async () => {
+    // Verify they have it before activating
+    const hasInventory = await hasStreakSaverInInventory()
+    if (!hasInventory) {
+      console.warn('Cannot activate Streak Saver: not in inventory')
+      return false
+    }
 
-  // Activate streak protection
-  const activateStreakSaver = () => {
     streakProtectionActive.value = true
-    // Set expiration to next day at midnight
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     tomorrow.setHours(23, 59, 59, 999)
     protectionExpiresAt.value = tomorrow.getTime()
-    saveToStorage()
+    await saveToSupabase()
+    return true
   }
 
-  // Deactivate protection
-  const deactivateProtection = () => {
+  const deactivateProtection = async () => {
     streakProtectionActive.value = false
     protectionExpiresAt.value = null
-    saveToStorage()
+    await saveToSupabase()
   }
 
-  // Check if streak is protected
   const isStreakProtected = computed(() => {
     if (!streakProtectionActive.value || !protectionExpiresAt.value) {
       return false
     }
 
-    // Check if protection has expired
     if (Date.now() > protectionExpiresAt.value) {
       deactivateProtection()
       return false
@@ -79,20 +125,46 @@ export function useStreakSaver() {
     return true
   })
 
-  // Use streak protection (called when user misses a day)
-  const useStreakProtection = () => {
-    if (isStreakProtected.value) {
-      deactivateProtection()
-      return true // Streak was saved
+  const useStreakProtection = async () => {
+    if (!isStreakProtected.value) return false
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return false
+
+      // Deduct from inventory
+      const { data: current } = await supabase
+        .from('user_inventory')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('item_key', 'streak_saver')
+        .single()
+
+      if (current && current.quantity > 0) {
+        await supabase
+          .from('user_inventory')
+          .update({
+            quantity: current.quantity - 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id)
+          .eq('item_key', 'streak_saver')
+      }
+
+      // Deactivate protection
+      await deactivateProtection()
+      return true
+    } catch (error) {
+      console.error('Error using streak protection:', error)
+      return false
     }
-    return false // No protection active
   }
 
-  // Time remaining
   const timeRemaining = computed(() => {
     if (!protectionExpiresAt.value) return 0
-    const remaining = protectionExpiresAt.value - Date.now()
-    return Math.max(0, remaining)
+    return Math.max(0, protectionExpiresAt.value - Date.now())
   })
 
   const formattedTimeRemaining = computed(() => {
@@ -107,5 +179,6 @@ export function useStreakSaver() {
     useStreakProtection,
     timeRemaining,
     formattedTimeRemaining,
+    initializeStreakSaver,
   }
 }

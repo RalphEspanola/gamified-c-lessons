@@ -1,23 +1,32 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
 defineOptions({ inheritAttrs: false })
 
 // Get topics and reactive lessons
-const { topics } = useLearningProgress()
+const { topics, initializeProgress } = useLearningProgress()
 
-// Compute total lessons and completed lessons
-const totalLessons = computed(() =>
-  topics.value.reduce((sum, topic) => sum + topic.lessons.length, 0),
-)
+// Initialize on mount
+onMounted(async () => {
+  await initializeProgress()
+})
 
-const completedLessons = computed(() =>
-  topics.value.reduce(
-    (sum, topic) => sum + topic.lessons.filter((l) => l.status === 'completed').length,
-    0,
-  ),
-)
+// Compute total lessons and completed lessons with safety checks
+const totalLessons = computed(() => {
+  if (!topics.value || !Array.isArray(topics.value)) return 0
+  return topics.value.reduce((sum, topic) => {
+    return sum + (topic.lessons?.length || 0)
+  }, 0)
+})
+
+const completedLessons = computed(() => {
+  if (!topics.value || !Array.isArray(topics.value)) return 0
+  return topics.value.reduce((sum, topic) => {
+    if (!topic.lessons || !Array.isArray(topic.lessons)) return sum
+    return sum + topic.lessons.filter((l) => l.status === 'completed').length
+  }, 0)
+})
 
 // Compute percentage
 const percentage = computed(() => {

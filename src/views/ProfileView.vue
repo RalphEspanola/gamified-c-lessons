@@ -1,16 +1,42 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { supabase } from '@/utils/supabase'
 
-// Temporary user data (replace with Supabase later)
-const user = ref({
-  name: 'Ralph Española',
-  email: 'ralph@email.com',
-  role: 'Student',
-  joinedAt: 'January 2025',
-})
+const router = useRouter()
+const user = ref(null)
+const loading = ref(true)
+
+// Fetch authenticated user
+const fetchUser = async () => {
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error || !data?.user) {
+    await supabase.auth.signOut()
+    router.push('/login')
+    return
+  }
+
+  const u = data.user
+
+  user.value = {
+    name: u.user_metadata?.name ?? 'User',
+    email: u.email ?? '',
+    role: u.user_metadata?.role ?? 'Student',
+    joinedAt: new Date(u.created_at).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }),
+  }
+
+  loading.value = false
+}
+
+onMounted(fetchUser)
 
 // Initials fallback
 const initials = computed(() => {
+  if (!user.value?.name) return ''
   return user.value.name
     .split(' ')
     .map((n) => n[0])
@@ -18,14 +44,29 @@ const initials = computed(() => {
     .toUpperCase()
 })
 
-function editProfile() {
+// Edit profile
+const editProfile = () => {
   console.log('Edit profile clicked')
-  // later: open dialog or route to edit page
+}
+
+// Go back to home
+const goBack = () => {
+  router.push('/')
+}
+
+// Logout
+const logout = async () => {
+  await supabase.auth.signOut()
+  router.push('/login')
 }
 </script>
-
 <template>
-  <v-container style="max-width: 800px" class="py-10">
+  <v-container v-if="!loading && user" style="max-width: 800px" class="py-10">
+    <!-- Back Button -->
+    <v-btn variant="text" prepend-icon="mdi-arrow-left" class="mb-4" @click="goBack">
+      Back to Home
+    </v-btn>
+
     <v-card elevation="4" rounded="xl">
       <!-- Header -->
       <v-card-text class="text-center py-8">
@@ -78,9 +119,7 @@ function editProfile() {
 
         <v-spacer />
 
-        <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="console.log('logout')">
-          Logout
-        </v-btn>
+        <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="logout"> Logout </v-btn>
       </v-card-actions>
     </v-card>
   </v-container>

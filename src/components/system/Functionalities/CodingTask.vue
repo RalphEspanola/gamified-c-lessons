@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 
 const props = defineProps({
@@ -13,7 +13,12 @@ const checkResult = ref(null)
 const protectionTriggered = ref(false)
 const showAnswer = ref(false)
 
-const { useProtection } = useAnswerProtection()
+const { useProtection, initializeProtection } = useAnswerProtection()
+
+// ✅ Initialize on mount
+onMounted(async () => {
+  await initializeProtection()
+})
 
 function selectOption(blankId, option) {
   if (!blankId) return
@@ -41,7 +46,8 @@ function removeBlankAnswer(blankId) {
   }
 }
 
-function checkCodingTask() {
+// ✅ FIXED: Made function async and added await
+async function checkCodingTask() {
   const blanks = props.task.blanks
 
   // 1️⃣ Check if ANY blank is wrong
@@ -62,7 +68,7 @@ function checkCodingTask() {
   }
 
   // 3️⃣ Wrong → try Answer Protection ONCE
-  const wasProtected = useProtection()
+  const wasProtected = await useProtection() // ✅ ADDED await
 
   if (wasProtected) {
     // Protection prevents heart loss
@@ -122,7 +128,9 @@ const getFilledTemplate = computed(() => {
               checkResult !== null
                 ? blankAnswers[blank.id] === blank.answer
                   ? 'success'
-                  : 'error'
+                  : protectionTriggered
+                    ? 'info'
+                    : 'error'
                 : 'primary'
             "
             closable

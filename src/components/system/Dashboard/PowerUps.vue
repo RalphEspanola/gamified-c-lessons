@@ -1,27 +1,39 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useShop } from '@/composables/system/useShop'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 import { useStreakSaver } from '@/composables/PowerUps/useStreakSaver'
 import { useDoubleXP } from '@/composables/PowerUps/useDoubleXP'
 
-const { powerUps, usePowerUp } = useShop()
-const { activateAnswerProtection, isProtectionActive } = useAnswerProtection()
-const { activateStreakSaver, isStreakProtected, formattedTimeRemaining } = useStreakSaver()
-const { activateDoubleXP } = useDoubleXP()
+const { powerUps, initializeShop } = useShop()
+const { activateAnswerProtection, isProtectionActive, initializeProtection } = useAnswerProtection()
+const { activateStreakSaver, isStreakProtected, formattedTimeRemaining, initializeStreakSaver } =
+  useStreakSaver()
+const { activateDoubleXP, isDoubleXPActive, initializeDoubleXP } = useDoubleXP()
+
+// 🔹 Initialize all on mount
+onMounted(async () => {
+  await Promise.all([
+    initializeShop(),
+    initializeProtection(),
+    initializeStreakSaver(),
+    initializeDoubleXP(),
+  ])
+})
 
 // Success/error messages
 const message = ref('')
 const messageType = ref('success')
 
-// Convert powerUps object to array for display
+// ✅ FIXED: Show power-ups even when count is 0 IF they're active
 const powerUpsList = computed(() => {
   const items = []
 
-  if (powerUps.value.streakSaver > 0) {
+  // Show Streak Saver if you have it OR if it's active
+  if (powerUps.value.streakSaver > 0 || isStreakProtected.value) {
     items.push({
       id: 'streakSaver',
-      shopKey: 'streakSaver', // 🔑 fix key
+      shopKey: 'streakSaver',
       title: 'Streak Saver',
       description: isStreakProtected.value
         ? `Active - Expires in ${formattedTimeRemaining.value}`
@@ -33,34 +45,27 @@ const powerUpsList = computed(() => {
     })
   }
 
-  if (powerUps.value.doubleXP > 0) {
+  // Show Double XP if you have it OR if it's active
+  if (powerUps.value.doubleXP > 0 || isDoubleXPActive.value) {
     items.push({
       id: 'doubleXP',
-      shopKey: 'doubleXP', // 🔑 fix key
+      shopKey: 'doubleXP',
       title: 'Double XP Boost',
-      description: 'Earn 2x XP for your next lesson',
+      description: isDoubleXPActive.value
+        ? 'Active - Will double XP in your next lesson'
+        : 'Earn 2x XP for your next lesson',
       icon: 'mdi-lightning-bolt',
       color: 'yellow',
       count: powerUps.value.doubleXP,
+      isActive: isDoubleXPActive.value,
     })
   }
 
-  if (powerUps.value.hintReveal > 0) {
-    items.push({
-      id: 'hintReveal',
-      shopKey: 'hintReveal', // 🔑 fix key
-      title: 'Hint Reveal',
-      description: 'Get a hint for any question',
-      icon: 'mdi-lightbulb-on',
-      color: 'purple',
-      count: powerUps.value.hintReveal,
-    })
-  }
-
-  if (powerUps.value.answerProtect > 0) {
+  // Show Answer Protection if you have it OR if it's active
+  if (powerUps.value.answerProtect > 0 || isProtectionActive.value) {
     items.push({
       id: 'answerProtect',
-      shopKey: 'answerProtect', // 🔑 fix key
+      shopKey: 'answerProtect',
       title: 'Answer Protection',
       description: isProtectionActive.value
         ? 'Active - Will protect your next wrong answer'
@@ -75,31 +80,29 @@ const powerUpsList = computed(() => {
   return items
 })
 
-// Handle activation with proper functionality
-const handleUsePowerUp = (powerUp) => {
+const handleUsePowerUp = async (powerUp) => {
   let success = false
 
-  // First, deduct from shop inventory using the correct shopKey
-  const deducted = usePowerUp(powerUp.shopKey)
-
-  if (!deducted) {
-    message.value = 'Failed to use power-up'
+  // Check if user has the power-up in inventory
+  if (powerUps.value[powerUp.shopKey] <= 0) {
+    message.value = "You don't have this power-up"
     messageType.value = 'error'
     setTimeout(() => (message.value = ''), 3000)
     return
   }
 
-  // Then activate the specific power-up functionality
+  // Activate the specific power-up functionality
   switch (powerUp.id) {
     case 'streakSaver':
       if (isStreakProtected.value) {
         message.value = 'Streak protection is already active!'
         messageType.value = 'warning'
       } else {
-        activateStreakSaver()
-        success = true
-        message.value = `${powerUp.title} activated! Your streak is protected for the next 24 hours.`
-        messageType.value = 'success'
+        success = await activateStreakSaver()
+        message.value = success
+          ? `${powerUp.title} activated! Your streak is protected for the next 24 hours.`
+          : 'Failed to activate Streak Saver'
+        messageType.value = success ? 'success' : 'error'
       }
       break
 
@@ -108,7 +111,7 @@ const handleUsePowerUp = (powerUp) => {
         message.value = 'Answer Protection is already active!'
         messageType.value = 'warning'
       } else {
-        success = activateAnswerProtection()
+        success = await activateAnswerProtection()
         message.value = success
           ? `${powerUp.title} activated! Your next wrong answer won't cost a heart.`
           : 'Failed to activate Answer Protection'
@@ -117,17 +120,16 @@ const handleUsePowerUp = (powerUp) => {
       break
 
     case 'doubleXP':
-      activateDoubleXP() // ⭐ Actually activate boost
-      success = true
-      message.value = `${powerUp.title} activated! You'll earn 2x XP in your next lesson.`
-      messageType.value = 'success'
-      break
-
-    case 'hintReveal':
-      // This will be handled in the quiz/lesson component
-      success = true
-      message.value = `${powerUp.title} ready! Use it during a lesson to reveal a hint.`
-      messageType.value = 'success'
+      if (isDoubleXPActive.value) {
+        message.value = 'Double XP is already active!'
+        messageType.value = 'warning'
+      } else {
+        success = await activateDoubleXP()
+        message.value = success
+          ? `${powerUp.title} activated! You'll earn 2x XP in your next lesson.`
+          : 'Failed to activate Double XP'
+        messageType.value = success ? 'success' : 'error'
+      }
       break
 
     default:

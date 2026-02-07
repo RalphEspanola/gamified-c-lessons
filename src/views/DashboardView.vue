@@ -3,15 +3,12 @@ import TopNavbar from '@/components/layout/TopNavbar.vue'
 import LevelXpCard from '@/components/system/Dashboard/LevelXpCard.vue'
 import LearningProgressCard from '@/components/system/Dashboard/LearningProgressCard.vue'
 import StreakDaysCard from '@/components/system/Dashboard/StreakDaysCard.vue'
-// import BadgesEarnedCard from '@/components/system/Dashboard/BadgesEarnedCard.vue'
 import LearningPathCard from '@/components/system/Dashboard/LearningPathCard.vue'
-// import BadgesUnlocked from '@/components/system/Dashboard/BadgesUnlocked.vue'
 import PowerUps from '@/components/system/Dashboard/PowerUps.vue'
 
-/* ================= XP SYSTEM ================= */
-import { useXP } from '@/composables/system/useXP'
+import { useAuth } from '@/composables/auth/useAuth'
 
-const { xp, level, xpToNextLevel, xpProgress } = useXP()
+const { currentUser } = useAuth()
 </script>
 
 <template>
@@ -22,7 +19,9 @@ const { xp, level, xpToNextLevel, xpProgress } = useXP()
     <v-row class="mb-6 mt-2">
       <v-col cols="12">
         <div>
-          <h1 class="text-h4 font-weight-bold mb-2">Welcome back, User!</h1>
+          <h1 class="text-h4 font-weight-bold mb-2">
+            Welcome back, {{ currentUser?.user_metadata?.first_name || 'User' }}!
+          </h1>
           <p class="text-subtitle-1 text-grey">Ready to continue your learning journey?</p>
         </div>
       </v-col>
@@ -31,14 +30,8 @@ const { xp, level, xpToNextLevel, xpProgress } = useXP()
     <!-- Dashboard Cards -->
     <v-row>
       <v-col cols="12" md="4" class="d-flex">
-        <!-- Pass reactive XP props to LevelXpCard -->
-        <LevelXpCard
-          class="w-100"
-          :user-level="level"
-          :current-xp="xp"
-          :xp-to-next-level="xpToNextLevel"
-          :xp-progress="xpProgress"
-        />
+        <!-- 🔹 No props needed - card handles its own data -->
+        <LevelXpCard class="w-100" />
       </v-col>
 
       <v-col cols="12" md="4" class="d-flex">
@@ -56,7 +49,6 @@ const { xp, level, xpToNextLevel, xpProgress } = useXP()
       </v-col>
 
       <v-col cols="12" md="4">
-        <!-- <BadgesUnlocked /> -->
         <PowerUps />
       </v-col>
     </v-row>

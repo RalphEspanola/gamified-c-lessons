@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useShop } from '@/composables/system/useShop'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 
@@ -12,13 +12,18 @@ const selected = ref('')
 const feedback = ref('')
 const protectionTriggered = ref(false)
 
-const { coins, usePowerUp, spendCoins, canAfford } = useShop()
-const { isProtectionActive, useProtection } = useAnswerProtection()
+const { coins, spendCoins, canAfford, initializeShop } = useShop()
+const { isProtectionActive, useProtection, initializeProtection } = useAnswerProtection()
+
+// 🔹 Initialize on mount
+onMounted(async () => {
+  await Promise.all([initializeShop(), initializeProtection()])
+})
 
 // Cost for showing the answer
 const SHOW_ANSWER_COST = 3
 
-function checkAnswer(option) {
+async function checkAnswer(option) {
   selected.value = option
   protectionTriggered.value = false
 
@@ -26,25 +31,35 @@ function checkAnswer(option) {
     feedback.value = '✅ Correct! Great job!'
     emit('correct-answer')
   } else {
-    const wasProtected = useProtection()
-    if (wasProtected) {
-      protectionTriggered.value = true
-      feedback.value = '🛡️ Answer Protection saved you! No heart lost.'
-    } else {
-      feedback.value = '❌ Not quite. Try again!'
-      emit('wrong-answer')
+    if (isProtectionActive.value) {
+      const wasProtected = await useProtection()
+      if (wasProtected) {
+        protectionTriggered.value = true
+        feedback.value = '🛡️ Answer Protection saved you! No heart lost.'
+        return
+      }
     }
+
+    feedback.value = '❌ Not quite. Try again!'
+    emit('wrong-answer')
   }
 }
 
-// Reveal the correct answer by spending coins
-function revealAnswer() {
+// ✅ FIXED: Reveal the correct answer by spending coins
+async function revealAnswer() {
   if (!canAfford(SHOW_ANSWER_COST)) {
     feedback.value = '⚠️ Not enough coins to reveal the answer.'
     return
   }
 
-  spendCoins(SHOW_ANSWER_COST)
+  // ✅ Actually spend the coins
+  const success = await spendCoins(SHOW_ANSWER_COST)
+
+  if (!success) {
+    feedback.value = '⚠️ Failed to spend coins.'
+    return
+  }
+
   selected.value = props.quiz.answer
   feedback.value = `💰 Revealed! The correct answer is "${props.quiz.answer}"`
   emit('use-show-answer', { cost: SHOW_ANSWER_COST })

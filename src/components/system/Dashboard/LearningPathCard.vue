@@ -1,19 +1,22 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLearningProgress } from '@/composables/system/useLearningProgress'
-import { useHearts } from '@/composables/useHearts'
+import { useHearts } from '@/composables/PowerUps/useHearts'
 
 const router = useRouter()
 
 const { canContinue } = useHearts()
-// 🔹 Use reactive topics from composable
-const { topics } = useLearningProgress()
+const { topics, initializeProgress } = useLearningProgress()
 
-// Navigate to lesson if not locked AND user has hearts
+// 🔹 Initialize progress on mount
+onMounted(async () => {
+  await initializeProgress()
+})
+
 const continueLesson = (lesson) => {
   if (lesson.status === 'locked') return
 
-  // ❤️ Block access if hearts = 0
   if (!canContinue.value) {
     alert('You have no hearts left! Wait for refills or earn more hearts.')
     return
@@ -22,7 +25,6 @@ const continueLesson = (lesson) => {
   router.push(lesson.route)
 }
 
-// Button configuration based on status
 const getButtonConfig = (status) => {
   const configs = {
     completed: { color: 'success', text: 'Review', icon: 'mdi-check-circle' },
@@ -37,7 +39,14 @@ const getButtonConfig = (status) => {
   <div class="learning-path-wrapper">
     <h2 class="text-h5 font-weight-bold mb-4">Your Learning Path</h2>
 
-    <v-card elevation="2" class="full-height-card">
+    <!-- Loading State -->
+    <v-card v-if="topics.length === 0" elevation="2" class="pa-8 text-center">
+      <v-progress-circular indeterminate color="primary" size="48" class="mb-4" />
+      <p class="text-body-2 text-grey">Loading your learning path...</p>
+    </v-card>
+
+    <!-- Topics List -->
+    <v-card v-else elevation="2" class="full-height-card">
       <v-expansion-panels>
         <v-expansion-panel v-for="topic in topics" :key="topic.id">
           <v-expansion-panel-title>

@@ -1,4 +1,7 @@
 <script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 import {
   requiredValidator,
   emailValidator,
@@ -129,7 +132,9 @@ const isPasswordConfirmVisible = ref(false)
         <!-- Footer -->
         <div class="text-center mt-4">
           <span class="text-body-2 text-grey">Already have an account?</span>
-          <v-btn variant="text" color="red-darken-4" size="small"> Sign in </v-btn>
+          <v-btn variant="text" color="red-darken-4" size="small" @click="router.push('/login')">
+            Sign in
+          </v-btn>
         </div>
       </v-form>
     </v-card>

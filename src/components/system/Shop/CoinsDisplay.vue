@@ -1,7 +1,12 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useShop } from '@/composables/system/useShop'
 
-const { coins } = useShop()
+const { coins, initializeShop } = useShop()
+
+onMounted(async () => {
+  await initializeShop()
+})
 </script>
 
 <template>

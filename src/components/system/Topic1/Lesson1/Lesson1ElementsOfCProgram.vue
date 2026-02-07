@@ -1,17 +1,19 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
 
-const { completeLesson } = useLearningProgress()
-
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 // Lesson info
 const lessonTitle = 'Lesson 1: Elements of a C Program'
 const lessonDescription = 'Learn the basic structure of C programs'
 const topicId = 1
 const lessonId = 1
+
+// ❌ DO NOT import useLearningProgress or call completeLesson manually
+// ✅ LessonSlides component handles ALL completion logic automatically
+
+// Optional: Add custom logic when lesson completes (analytics, notifications, etc.)
+function handleLessonComplete() {
+  console.log('✅ Lesson 1 completed!')
+}
 
 // Slides data
 const slides = [

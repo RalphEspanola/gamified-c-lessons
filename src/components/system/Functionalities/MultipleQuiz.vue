@@ -1,6 +1,7 @@
 <script setup>
-import { ref, triggerRef } from 'vue'
+import { ref, triggerRef, onMounted } from 'vue'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
+import { useShop } from '@/composables/system/useShop'
 
 const props = defineProps({
   quizzes: {
@@ -16,7 +17,17 @@ const practiceBlankAnswers = ref({})
 const practiceAvailableOptions = ref({})
 
 // Answer Protection
-const { useProtection } = useAnswerProtection()
+const { useProtection, initializeProtection } = useAnswerProtection()
+
+// ✅ Add Shop for coin deduction
+const { spendCoins, canAfford, initializeShop } = useShop()
+
+const SHOW_ANSWER_COST = 3
+
+// Initialize on mount
+onMounted(async () => {
+  await Promise.all([initializeShop(), initializeProtection()])
+})
 
 // Initialize available options
 function initPracticeInteractive(quizIndex, quiz) {
@@ -74,11 +85,9 @@ function removePracticeBlank(quizIndex, blankId) {
   }
 }
 
-// Check if answers are correct (Answer Protection is used here)
-function checkPracticeInteractive(quizIndex, quiz) {
+async function checkPracticeInteractive(quizIndex, quiz) {
   const blanks = quiz.blanks
 
-  // 1️⃣ Check if ANY blank is wrong — ONE TIME ONLY
   let allCorrect = true
   for (const blank of blanks) {
     const userAnswer = practiceBlankAnswers.value[quizIndex]?.[blank.id]
@@ -88,7 +97,6 @@ function checkPracticeInteractive(quizIndex, quiz) {
     }
   }
 
-  // 2️⃣ If everything is correct
   if (allCorrect) {
     practiceAnswers.value[quizIndex] = {
       selected: 'checked',
@@ -99,11 +107,9 @@ function checkPracticeInteractive(quizIndex, quiz) {
     return
   }
 
-  // 3️⃣ If wrong → try protection ONE TIME (not inside loop)
-  const protectedOnce = useProtection()
+  const protectedOnce = await useProtection()
 
   if (protectedOnce) {
-    // Protection saves the user → NO HEART LOST
     practiceAnswers.value[quizIndex] = {
       selected: 'checked',
       isCorrect: false,
@@ -112,7 +118,6 @@ function checkPracticeInteractive(quizIndex, quiz) {
     return
   }
 
-  // 4️⃣ No protection → heart is deducted once
   practiceAnswers.value[quizIndex] = {
     selected: 'checked',
     isCorrect: false,
@@ -121,13 +126,12 @@ function checkPracticeInteractive(quizIndex, quiz) {
 
   emit('wrong-answer')
 }
-// Fill status
+
 function isPracticeComplete(quizIndex, quiz) {
   if (!quiz.blanks) return false
   return quiz.blanks.every((blank) => practiceBlankAnswers.value[quizIndex]?.[blank.id])
 }
 
-// Render user-filled template
 function getPracticeFilledTemplate(quizIndex, quiz) {
   if (!quiz.template) return ''
 
@@ -140,7 +144,6 @@ function getPracticeFilledTemplate(quizIndex, quiz) {
   return template
 }
 
-// Render correct template
 function getCorrectTemplate(quiz) {
   if (!quiz.template) return ''
 
@@ -152,16 +155,27 @@ function getCorrectTemplate(quiz) {
   return template
 }
 
-// Reveal one answer (power-up)
-function revealOneAnswer(quizIndex, quiz) {
-  const blanks = quiz.blanks
+// ✅ FIXED: Reveal one answer with coin deduction
+async function revealOneAnswer(quizIndex, quiz) {
+  if (!canAfford(SHOW_ANSWER_COST)) {
+    console.warn('Not enough coins')
+    return
+  }
 
+  const blanks = quiz.blanks
   const targetBlank = blanks.find((blank) => {
     const current = practiceBlankAnswers.value[quizIndex]?.[blank.id]
     return current !== blank.answer
   })
 
   if (!targetBlank) return
+
+  // ✅ Actually spend the coins
+  const success = await spendCoins(SHOW_ANSWER_COST)
+  if (!success) {
+    console.warn('Failed to spend coins')
+    return
+  }
 
   if (!practiceBlankAnswers.value[quizIndex]) {
     practiceBlankAnswers.value[quizIndex] = {}
@@ -180,7 +194,7 @@ function revealOneAnswer(quizIndex, quiz) {
   emit('use-show-answer', {
     quizIndex,
     blankId: targetBlank.id,
-    cost: 3,
+    cost: SHOW_ANSWER_COST,
   })
 }
 </script>
@@ -259,7 +273,7 @@ function revealOneAnswer(quizIndex, quiz) {
           class="mt-2"
           @click="revealOneAnswer(index, quiz)"
         >
-          Show Answer (3 coins)
+          Show Answer ({{ SHOW_ANSWER_COST }} coins)
         </v-btn>
 
         <!-- Check Answer -->

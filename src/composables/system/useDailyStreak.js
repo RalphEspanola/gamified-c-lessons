@@ -1,45 +1,67 @@
-// /src/composables/useDailyStreak.js
+// composables/useDailyStreak.js
 import { ref } from 'vue'
+import { supabase } from '@/utils/supabase'
 
 const streak = ref(0)
-const lastLogin = ref(null) // stores date string (YYYY-MM-DD)
-const hasStreakSaver = ref(false) // power-up
+const longestStreak = ref(0)
+const lastLogin = ref(null)
 
 export function useDailyStreak() {
-  function loadData() {
-    const data = JSON.parse(localStorage.getItem('dailyStreak'))
-    if (data) {
-      streak.value = data.streak || 0
-      lastLogin.value = data.lastLogin || null
-      hasStreakSaver.value = data.hasStreakSaver || false
+  // 🔹 Initialize from Supabase
+  const initializeStreak = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data) {
+        streak.value = data.current_streak
+        longestStreak.value = data.longest_streak
+        lastLogin.value = data.last_active_date
+      }
+    } catch (error) {
+      console.error('Error loading streak:', error)
     }
   }
 
-  function saveData() {
-    localStorage.setItem(
-      'dailyStreak',
-      JSON.stringify({
-        streak: streak.value,
-        lastLogin: lastLogin.value,
-        hasStreakSaver: hasStreakSaver.value,
-      }),
-    )
+  // 🔹 Save to Supabase
+  const saveToSupabase = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      await supabase
+        .from('user_streaks')
+        .update({
+          current_streak: streak.value,
+          longest_streak: longestStreak.value,
+          last_active_date: lastLogin.value,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+    } catch (error) {
+      console.error('Error saving streak:', error)
+    }
   }
 
-  loadData()
+  const handleDailyLogin = async (hasStreakSaver = false) => {
+    const today = new Date().toISOString().slice(0, 10)
 
-  // Get today's date (YYYY-MM-DD)
-  const today = new Date().toISOString().slice(0, 10)
-
-  // Function to check daily login streak
-  function handleDailyLogin() {
     if (lastLogin.value === today) {
-      // Already logged in today — do nothing
-      return
+      return // Already logged in today
     }
 
     if (!lastLogin.value) {
-      // First time ever
+      // First login
       streak.value = 1
     } else {
       const yesterday = new Date()
@@ -47,34 +69,32 @@ export function useDailyStreak() {
       const yesterdayStr = yesterday.toISOString().slice(0, 10)
 
       if (lastLogin.value === yesterdayStr) {
-        // Logged in yesterday → continue streak
+        // Continue streak
         streak.value++
       } else {
-        // Missed a day → streak breaks
-        if (hasStreakSaver.value) {
-          console.log('🛡️ Streak Saver used! Streak preserved.')
-          hasStreakSaver.value = false // consume
+        // Streak broken
+        if (hasStreakSaver) {
+          console.log('🛡️ Streak Saver used!')
         } else {
-          streak.value = 1 // reset streak
+          streak.value = 1
         }
       }
     }
 
-    lastLogin.value = today
-    saveData()
-  }
+    // Update longest streak
+    if (streak.value > longestStreak.value) {
+      longestStreak.value = streak.value
+    }
 
-  // Power-up purchase
-  function buyStreakSaver() {
-    hasStreakSaver.value = true
-    saveData()
+    lastLogin.value = today
+    await saveToSupabase()
   }
 
   return {
     streak,
+    longestStreak,
     lastLogin,
-    hasStreakSaver,
     handleDailyLogin,
-    buyStreakSaver,
+    initializeStreak,
   }
 }

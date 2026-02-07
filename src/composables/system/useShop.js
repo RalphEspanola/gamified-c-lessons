@@ -1,112 +1,188 @@
+// composables/system/useShop.js
 import { ref, computed } from 'vue'
-import { useHearts } from '../useHearts'
+import { supabase } from '@/utils/supabase'
+import { useHearts } from '@/composables/PowerUps/useHearts'
 
-// Power-ups inventory with default values
 const powerUps = ref({
   streakSaver: 0,
   doubleXP: 0,
-  hintReveal: 0,
   answerProtect: 0,
 })
 
-// In-game currency
-const coins = ref(100) // Starting coins
+const coins = ref(0)
 
 export function useShop() {
   const { restoreAllHearts, gainHeart, hearts, MAX_HEARTS } = useHearts()
 
-  // Load from storage
-  const loadFromStorage = () => {
+  // 🔹 Initialize from Supabase
+  const initializeShop = async () => {
     try {
-      const savedCoins = window.localStorage?.getItem('coins')
-      const savedPowerUps = window.localStorage?.getItem('powerUps')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
 
-      if (savedCoins !== null) {
-        coins.value = parseInt(savedCoins)
+      console.log('🔄 Initializing shop...')
+
+      // Get coins from user_stats
+      const { data: stats } = await supabase
+        .from('user_stats')
+        .select('coins')
+        .eq('user_id', user.id)
+        .single()
+
+      if (stats) {
+        coins.value = stats.coins
+        console.log('💰 Coins loaded:', coins.value)
       }
 
-      if (savedPowerUps !== null) {
-        const loaded = JSON.parse(savedPowerUps)
-        // Merge with defaults to ensure all power-ups exist
+      // Get powerups from user_inventory
+      const { data: inventory, error: inventoryError } = await supabase
+        .from('user_inventory')
+        .select('item_key, quantity')
+        .eq('user_id', user.id)
+
+      if (inventoryError) {
+        console.error('❌ Error loading inventory:', inventoryError)
+        return
+      }
+
+      if (inventory) {
         powerUps.value = {
-          streakSaver: loaded.streakSaver || 0,
-          doubleXP: loaded.doubleXP || 0,
-          hintReveal: loaded.hintReveal || 0,
-          answerProtect: loaded.answerProtect || 0,
+          streakSaver: inventory.find((i) => i.item_key === 'streak_saver')?.quantity || 0,
+          doubleXP: inventory.find((i) => i.item_key === 'double_xp')?.quantity || 0,
+          answerProtect: inventory.find((i) => i.item_key === 'answer_protect')?.quantity || 0,
         }
+        console.log('📦 Power-ups loaded:', powerUps.value)
       }
     } catch (error) {
-      console.warn('Could not load shop data from localStorage', error)
+      console.error('❌ Error loading shop data:', error)
     }
   }
 
-  // Save to storage
-  const saveToStorage = () => {
+  // 🔹 Add coins
+  const addCoins = async (amount) => {
     try {
-      window.localStorage?.setItem('coins', coins.value.toString())
-      window.localStorage?.setItem('powerUps', JSON.stringify(powerUps.value))
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      coins.value += amount
+
+      await supabase
+        .from('user_stats')
+        .update({
+          coins: coins.value,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
     } catch (error) {
-      console.warn('Could not save shop data to localStorage', error)
+      console.error('Error adding coins:', error)
     }
   }
 
-  // Initialize
-  loadFromStorage()
-
-  // Add coins (earned from completing lessons)
-  const addCoins = (amount) => {
-    coins.value += amount
-    saveToStorage()
-  }
-
-  // Spend coins
-  const spendCoins = (amount) => {
+  // 🔹 Spend coins
+  const spendCoins = async (amount) => {
     if (coins.value >= amount) {
-      coins.value -= amount
-      saveToStorage()
+      await addCoins(-amount)
       return true
     }
     return false
   }
 
-  // Buy heart refill
-  const buyHeartRefill = (type) => {
+  // 🔹 Buy heart refill
+  const buyHeartRefill = async (type) => {
     const prices = { single: 10, full: 30 }
 
-    if (spendCoins(prices[type])) {
-      if (type === 'single') gainHeart()
-      else restoreAllHearts()
+    if (await spendCoins(prices[type])) {
+      if (type === 'single') await gainHeart()
+      else await restoreAllHearts()
       return true
     }
     return false
   }
 
-  // Buy power-up
-  const buyPowerUp = (powerUpType, price) => {
-    if (spendCoins(price)) {
-      powerUps.value[powerUpType]++
-      saveToStorage()
+  // 🔹 Buy power-up
+  const buyPowerUp = async (powerUpType, price) => {
+    try {
+      console.log(`🛒 Attempting to buy ${powerUpType} for ${price} coins`)
+
+      if (!(await spendCoins(price))) {
+        console.log('❌ Not enough coins')
+        return false
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        console.log('❌ No user found')
+        return false
+      }
+
+      const itemKeyMap = {
+        streakSaver: 'streak_saver',
+        doubleXP: 'double_xp',
+        answerProtect: 'answer_protect',
+      }
+
+      const itemKey = itemKeyMap[powerUpType]
+      console.log(`📝 Item key: ${itemKey}`)
+
+      // Check existing quantity
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_inventory')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('item_key', itemKey)
+        .maybeSingle() // ✅ Use maybeSingle() instead of single() to avoid error if not found
+
+      if (fetchError) {
+        console.error('❌ Error fetching existing inventory:', fetchError)
+        return false
+      }
+
+      const currentQuantity = existing?.quantity || 0
+      const newQuantity = currentQuantity + 1
+
+      console.log(`📊 Current quantity: ${currentQuantity}, New quantity: ${newQuantity}`)
+
+      // Upsert inventory item
+      const { error: upsertError } = await supabase.from('user_inventory').upsert(
+        {
+          user_id: user.id,
+          item_key: itemKey,
+          quantity: newQuantity,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'user_id,item_key', // ✅ Specify conflict columns
+        },
+      )
+
+      if (upsertError) {
+        console.error('❌ Error upserting inventory:', upsertError)
+        return false
+      }
+
+      // ✅ Update local state immediately
+      powerUps.value[powerUpType] = newQuantity
+      console.log(`✅ Successfully bought ${powerUpType}! New count: ${newQuantity}`)
+      console.log('📦 Updated powerUps:', powerUps.value)
+
       return true
+    } catch (error) {
+      console.error('❌ Error buying power-up:', error)
+      return false
     }
-    return false
   }
 
-  // Use power-up
-  const usePowerUp = (powerUpType) => {
-    if (powerUps.value[powerUpType] > 0) {
-      powerUps.value[powerUpType]--
-      saveToStorage()
-      return true
-    }
-    return false
-  }
+  // ✅ REMOVED usePowerUp function - not needed anymore
 
-  // Check if can afford
   const canAfford = (price) => coins.value >= price
 
-  // Shop items catalog
   const shopItems = computed(() => [
-    // Heart Refills
     {
       id: 'heart-single',
       name: 'Single Heart',
@@ -130,7 +206,6 @@ export function useShop() {
       badge: 'BEST VALUE',
       disabled: hearts.value >= MAX_HEARTS,
     },
-    // Power-ups
     {
       id: 'streak-saver',
       name: 'Streak Saver',
@@ -154,7 +229,6 @@ export function useShop() {
       color: 'yellow',
       owned: powerUps.value.doubleXP,
     },
-
     {
       id: 'answer-protect',
       name: 'Answer Protection',
@@ -176,7 +250,7 @@ export function useShop() {
     spendCoins,
     buyHeartRefill,
     buyPowerUp,
-    usePowerUp,
     canAfford,
+    initializeShop,
   }
 }
