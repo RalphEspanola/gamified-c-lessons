@@ -45,9 +45,9 @@ const initials = computed(() => {
 })
 
 // Edit profile
-const editProfile = () => {
-  console.log('Edit profile clicked')
-}
+// const editProfile = () => {
+//   console.log('Edit profile clicked')
+// }
 
 // Go back to home
 const goBack = () => {
@@ -113,10 +113,6 @@ const logout = async () => {
 
       <!-- Actions -->
       <v-card-actions class="px-8 py-6">
-        <v-btn color="primary" variant="outlined" prepend-icon="mdi-pencil" @click="editProfile">
-          Edit Profile
-        </v-btn>
-
         <v-spacer />
 
         <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="logout"> Logout </v-btn>

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { supabase } from '@/utils/supabase'
 import DashboardView from '@/views/DashboardView.vue'
 import Lesson1ElementsOfCProgram from '@/components/system/Topic1/Lesson1/Lesson1ElementsOfCProgram.vue'
 import Lesson2VariablesAndDataTypes from '@/components/system/Topic1/Lesson2/Lesson2VariablesAndDataTypes.vue'
@@ -47,203 +48,266 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson1',
       name: 'Lesson1ElementsOfCProgram',
       component: Lesson1ElementsOfCProgram,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson2',
       name: 'Lesson2VariablesAndDataTypes',
       component: Lesson2VariablesAndDataTypes,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson3',
       name: 'Lesson3ExecutableStatements',
       component: Lesson3ExecutableStatements,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson4',
       name: 'Lesson4ArithmeticExpressions',
       component: Lesson4ArithmeticExpressions,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson5',
       name: 'Lesson5StringFormatter',
       component: Lesson5StringFormatter,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/lesson6',
       name: 'Lesson6CommonProgrammingErrors',
       component: Lesson6CommonProgrammingErrors,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic1/Topic1Quiz',
       name: 'Topic1QuizCFundamentals',
       component: Topic1QuizCFundamentals,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson1',
       name: 'Lesson1ControlTructures',
       component: Lesson1ControlTructures,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson2',
       name: 'Lesson2ConditionsAndLogicalExpressions',
       component: Lesson2ConditionsAndLogicalExpressions,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson3',
       name: 'Lesson3TheIfStatement',
       component: Lesson3TheIfStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson4',
       name: 'Lesson4NestedIfStatement',
       component: Lesson4NestedIfStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson5',
       name: 'Lesson5DecisionStepsInAlgorithms',
       component: Lesson5DecisionStepsInAlgorithms,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson6',
       name: 'Lesson6TheIfElseStatement',
       component: Lesson6TheIfElseStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson7',
       name: 'Lesson7NestedIfElseStatement',
       component: Lesson7NestedIfElseStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/lesson8',
       name: 'Lesson8TheSwitchCaseStatement',
       component: Lesson8TheSwitchCaseStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic2/Topic2Quiz',
       name: 'Topic2Quiz',
       component: Topic2Quiz,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson1',
       name: 'Lesson1TheWhileStatement',
       component: Lesson1TheWhileStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson2',
       name: 'Lesson2PhasesofLoopExecution',
       component: Lesson2PhasesofLoopExecution,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson3',
       name: 'Lesson3LoopsUsingTheWhileStatement',
       component: Lesson3LoopsUsingTheWhileStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson4',
       name: 'Lesson4TheSwitchStatement',
       component: Lesson4TheSwitchStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson5',
       name: 'Lesson5TheDoWhileStatement',
       component: Lesson5TheDoWhileStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson6',
       name: 'Lesson6TheForStatement',
       component: Lesson6TheForStatement,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/lesson7',
       name: 'Lesson7NestedLogicAndLoop',
       component: Lesson7NestedLogicAndLoop,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic3/Topic3Quiz',
       name: 'Topic3Quiz',
       component: Topic3Quiz,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/lesson1',
       name: 'T4L1VoidDesign',
       component: T4L1VoidDesign,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/lesson2',
       name: 'T4L2UserFunctions',
       component: T4L2UserFunctions,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/lesson3',
       name: 'T4L3SyntaxSemantics',
       component: T4L3SyntaxSemantics,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/lesson4',
       name: 'T4L4Parameters',
       component: T4L4Parameters,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/lesson5',
       name: 'T4L5Designing',
       component: T4L5Designing,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic4/Topic4Quiz',
       name: 'T4Quiz',
       component: T4Quiz,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic5/lesson1',
       name: 'T5L1OneDimensionalArray',
       component: T5L1OneDimensionalArray,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic5/lesson2',
       name: 'T5L2WorkingWithStrings',
       component: T5L2WorkingWithStrings,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic5/lesson3',
       name: 'T5L3MultidimensionalArrays',
       component: T5L3MultidimensionalArrays,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic5/lesson4',
       name: 'T5L4BasicStringManipulations',
       component: T5L4BasicStringManipulations,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/topic5/Topic5Quiz',
       name: 'T5Quiz',
       component: T5Quiz,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/shop',
       name: 'shop',
       component: ShopPage,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
     {
       path: '/login',
       name: 'login',
       component: LoginView,
+      meta: { requiresGuest: true }, // 🔓 Guest only
     },
     {
       path: '/register',
       name: 'register',
       component: RegisterView,
+      meta: { requiresGuest: true }, // 🔓 Guest only
     },
     {
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { requiresAuth: true }, // 🔒 Protected route
     },
   ],
+})
+
+// 🔒 Global Navigation Guard
+router.beforeEach(async (to, from, next) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const isAuthenticated = !!session
+
+  // Redirect logged-in users away from login/register
+  if (to.meta.requiresGuest && isAuthenticated) {
+    next('/')
+    return
+  }
+
+  // Redirect non-authenticated users to login
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+    return
+  }
+
+  // Allow navigation
+  next()
 })
 
 export default router
