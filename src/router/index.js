@@ -40,6 +40,7 @@ import ShopPage from '@/views/ShopPage.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import LeaderboardView from '@/views/LeaderboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -283,6 +284,12 @@ const router = createRouter({
       name: 'profile',
       component: ProfileView,
       meta: { requiresAuth: true }, // 🔒 Protected route
+    },
+    {
+      path: '/leaderboard',
+      name: 'Leaderboard',
+      component: LeaderboardView,
+      meta: { requiresAuth: true },
     },
   ],
 })

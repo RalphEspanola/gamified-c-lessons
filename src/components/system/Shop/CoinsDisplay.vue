@@ -11,7 +11,7 @@ onMounted(async () => {
 
 <template>
   <v-chip color="amber" variant="elevated" class="px-4">
-    <v-icon start>mdi-coin</v-icon>
+    <v-icon start>mdi-cash</v-icon>
     <span class="font-weight-bold">{{ coins }}</span>
   </v-chip>
 </template>
