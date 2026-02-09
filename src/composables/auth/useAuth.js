@@ -1,24 +1,35 @@
-// composables/useAuth.js
-import { ref } from 'vue'
-import { supabase } from '@/utils/supabase'
-
-const currentUser = ref(null)
+import { computed } from 'vue'
+import { useAuthState } from './useAuthState'
 
 export function useAuth() {
-  const loadUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    currentUser.value = user
+  const { user, session, isAuthenticated, signOut, initAuth } = useAuthState()
+
+  // Computed property for current user (reactive)
+  const currentUser = computed(() => user.value)
+
+  // Check if user is logged in
+  const isLoggedIn = computed(() => isAuthenticated())
+
+  // Get user metadata helper
+  const getUserMetadata = (key) => {
+    return currentUser.value?.user_metadata?.[key] || null
   }
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    currentUser.value = session?.user || null
-  })
+  // Get user email
+  const userEmail = computed(() => currentUser.value?.email || '')
 
-  loadUser()
+  // Get user ID
+  const userId = computed(() => currentUser.value?.id || null)
 
   return {
     currentUser,
+    session,
+    isLoggedIn,
+    isAuthenticated,
+    signOut,
+    initAuth,
+    getUserMetadata,
+    userEmail,
+    userId,
   }
 }

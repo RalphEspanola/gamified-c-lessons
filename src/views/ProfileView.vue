@@ -1,53 +1,49 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@/utils/supabase'
+import { useAuth } from '@/composables/auth/useAuth'
 
 const router = useRouter()
-const user = ref(null)
+const { currentUser, signOut } = useAuth()
 const loading = ref(true)
 
-// Fetch authenticated user
-const fetchUser = async () => {
-  const { data, error } = await supabase.auth.getUser()
+// User display data
+const userData = computed(() => {
+  if (!currentUser.value) return null
 
-  if (error || !data?.user) {
-    await supabase.auth.signOut()
-    router.push('/login')
-    return
-  }
+  const u = currentUser.value
 
-  const u = data.user
-
-  user.value = {
-    name: u.user_metadata?.name ?? 'User',
-    email: u.email ?? '',
-    role: u.user_metadata?.role ?? 'Student',
+  return {
+    name: u.user_metadata?.first_name
+      ? `${u.user_metadata.first_name} ${u.user_metadata?.last_name || ''}`.trim()
+      : u.user_metadata?.name || 'User',
+    email: u.email || '',
+    role: u.user_metadata?.role || 'Student',
     joinedAt: new Date(u.created_at).toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric',
     }),
   }
+})
 
+onMounted(() => {
+  // Check if user exists
+  if (!currentUser.value) {
+    router.push('/login')
+    return
+  }
   loading.value = false
-}
-
-onMounted(fetchUser)
+})
 
 // Initials fallback
 const initials = computed(() => {
-  if (!user.value?.name) return ''
-  return user.value.name
+  if (!userData.value?.name) return ''
+  return userData.value.name
     .split(' ')
     .map((n) => n[0])
     .join('')
     .toUpperCase()
 })
-
-// Edit profile
-// const editProfile = () => {
-//   console.log('Edit profile clicked')
-// }
 
 // Go back to home
 const goBack = () => {
@@ -55,13 +51,14 @@ const goBack = () => {
 }
 
 // Logout
-const logout = async () => {
-  await supabase.auth.signOut()
+const handleLogout = async () => {
+  await signOut()
   router.push('/login')
 }
 </script>
+
 <template>
-  <v-container v-if="!loading && user" style="max-width: 800px" class="py-10">
+  <v-container v-if="!loading && userData" style="max-width: 800px" class="py-10">
     <!-- Back Button -->
     <v-btn variant="text" prepend-icon="mdi-arrow-left" class="mb-4" @click="goBack">
       Back to Home
@@ -76,11 +73,11 @@ const logout = async () => {
           </span>
         </v-avatar>
 
-        <h2 class="mt-4 font-weight-bold">{{ user.name }}</h2>
-        <p class="text-grey">{{ user.email }}</p>
+        <h2 class="mt-4 font-weight-bold">{{ userData.name }}</h2>
+        <p class="text-grey">{{ userData.email }}</p>
 
         <v-chip color="primary" class="mt-2">
-          {{ user.role }}
+          {{ userData.role }}
         </v-chip>
       </v-card-text>
 
@@ -95,7 +92,7 @@ const logout = async () => {
             </template>
             <v-list-item-title> Joined </v-list-item-title>
             <v-list-item-subtitle>
-              {{ user.joinedAt }}
+              {{ userData.joinedAt }}
             </v-list-item-subtitle>
           </v-list-item>
 
@@ -114,9 +111,15 @@ const logout = async () => {
       <!-- Actions -->
       <v-card-actions class="px-8 py-6">
         <v-spacer />
-
-        <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="logout"> Logout </v-btn>
+        <v-btn color="red" variant="text" prepend-icon="mdi-logout" @click="handleLogout">
+          Logout
+        </v-btn>
       </v-card-actions>
     </v-card>
+  </v-container>
+
+  <!-- Loading State -->
+  <v-container v-else class="d-flex justify-center align-center" style="min-height: 400px">
+    <v-progress-circular indeterminate color="primary" size="64" />
   </v-container>
 </template>

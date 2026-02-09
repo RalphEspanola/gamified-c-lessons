@@ -5,9 +5,8 @@ import { useLeaderboard } from '@/composables/system/useLeaderboard'
 import { useAuth } from '@/composables/auth/useAuth'
 
 const { currentUser } = useAuth()
-const { leaderboard, currentUserRank, isLoading, fetchLeaderboard, getTopUsers } = useLeaderboard()
+const { leaderboard, currentUserRank, isLoading, fetchLeaderboard } = useLeaderboard()
 
-const selectedTab = ref('global')
 const searchQuery = ref('')
 
 onMounted(async () => {

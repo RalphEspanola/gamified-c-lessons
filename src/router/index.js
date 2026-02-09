@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { supabase } from '@/utils/supabase'
+import { useAuthState } from '@/composables/auth/useAuthState'
 import DashboardView from '@/views/DashboardView.vue'
 import Lesson1ElementsOfCProgram from '@/components/system/Topic1/Lesson1/Lesson1ElementsOfCProgram.vue'
 import Lesson2VariablesAndDataTypes from '@/components/system/Topic1/Lesson2/Lesson2VariablesAndDataTypes.vue'
@@ -294,23 +294,23 @@ const router = createRouter({
   ],
 })
 
-// 🔒 Global Navigation Guard
+// 🔒 Global Navigation Guard (FIXED)
 router.beforeEach(async (to, from, next) => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const isAuthenticated = !!session
+  const { initAuth, isAuthenticated } = useAuthState()
+
+  // Initialize auth state (only runs once due to internal flag)
+  await initAuth()
+
+  const authenticated = isAuthenticated()
 
   // Redirect logged-in users away from login/register
-  if (to.meta.requiresGuest && isAuthenticated) {
-    next('/')
-    return
+  if (to.meta.requiresGuest && authenticated) {
+    return next('/')
   }
 
   // Redirect non-authenticated users to login
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-    return
+  if (to.meta.requiresAuth && !authenticated) {
+    return next('/login')
   }
 
   // Allow navigation
