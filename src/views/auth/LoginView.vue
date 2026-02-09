@@ -93,12 +93,13 @@ watch(
                 :rules="[requiredValidator]"
                 class="mb-2"
               />
-
+              <!--
               <div class="text-right mb-4">
                 <v-btn variant="text" color="deep-purple" size="small" class="text-none">
                   Forgot Password?
                 </v-btn>
               </div>
+              -->
 
               <v-btn
                 type="submit"
