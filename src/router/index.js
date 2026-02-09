@@ -294,25 +294,40 @@ const router = createRouter({
   ],
 })
 
-// 🔒 Global Navigation Guard (FIXED)
+// 🔒 Global Navigation Guard (WITH DEBUG LOGGING)
 router.beforeEach(async (to, from, next) => {
-  const { initAuth, isAuthenticated } = useAuthState()
+  console.log(`🚦 Navigation: ${from.path} → ${to.path}`)
 
-  // Initialize auth state (only runs once due to internal flag)
+  const { initAuth, isAuthenticated, getSession } = useAuthState()
+
+  // Initialize auth state (only runs once)
   await initAuth()
 
   const authenticated = isAuthenticated()
+  const currentSession = getSession()
+
+  console.log('🔐 Auth Check:', {
+    to: to.path,
+    requiresAuth: to.meta.requiresAuth,
+    requiresGuest: to.meta.requiresGuest,
+    authenticated,
+    hasSession: !!currentSession,
+    sessionExpiry: currentSession?.expires_at,
+  })
 
   // Redirect logged-in users away from login/register
   if (to.meta.requiresGuest && authenticated) {
+    console.log('⛔ Redirecting authenticated user away from guest page')
     return next('/')
   }
 
   // Redirect non-authenticated users to login
   if (to.meta.requiresAuth && !authenticated) {
+    console.log('⛔ Redirecting unauthenticated user to login')
     return next('/login')
   }
 
+  console.log('✅ Navigation allowed')
   // Allow navigation
   next()
 })
