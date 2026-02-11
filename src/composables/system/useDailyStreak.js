@@ -15,17 +15,33 @@ export function useDailyStreak() {
       } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_streaks')
         .select('*')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle() // ✅ safer
 
-      if (data) {
-        streak.value = data.current_streak
-        longestStreak.value = data.longest_streak
-        lastLogin.value = data.last_active_date
+      // If no row exists → create one
+      if (!data) {
+        const { data: newRow } = await supabase
+          .from('user_streaks')
+          .insert({
+            user_id: user.id,
+            current_streak: 0,
+            longest_streak: 0,
+          })
+          .select()
+          .single()
+
+        streak.value = 0
+        longestStreak.value = 0
+        lastLogin.value = null
+        return
       }
+
+      streak.value = data.current_streak
+      longestStreak.value = data.longest_streak
+      lastLogin.value = data.last_active_date
     } catch (error) {
       console.error('Error loading streak:', error)
     }

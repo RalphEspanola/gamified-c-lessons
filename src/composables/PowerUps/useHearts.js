@@ -25,7 +25,7 @@ export function useHearts() {
     loading.value = true
     try {
       const { data, error } = await supabase
-        .from('user_wallet')
+        .from('user_stats')
         .select('hearts, last_lost_time')
         .eq('user_id', userId)
         .single()
@@ -37,7 +37,7 @@ export function useHearts() {
         lastLostTime.value = data.last_lost_time ?? Date.now()
       } else {
         // First-time user, insert row
-        await supabase.from('user_wallet').insert({
+        await supabase.from('user_stats').insert({
           user_id: userId,
           hearts: MAX_HEARTS,
           last_lost_time: Date.now(),
@@ -56,7 +56,7 @@ export function useHearts() {
 
     try {
       await supabase
-        .from('user_wallet')
+        .from('user_stats')
         .update({
           hearts: hearts.value,
           last_lost_time: lastLostTime.value,
