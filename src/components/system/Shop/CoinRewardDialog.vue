@@ -22,6 +22,7 @@ const { isDoubleXPActive, consumeDoubleXP } = useDoubleXP()
 const rewardedXP = ref(0)
 const rewardedCoins = ref(0)
 const hasAwarded = ref(false)
+const appliedDoubleXP = ref(false)
 
 // 🔹 Watch for dialog opening and award rewards
 watch(
@@ -33,6 +34,7 @@ watch(
     } else if (!isOpen) {
       // Reset for next time
       hasAwarded.value = false
+      appliedDoubleXP.value = false
       rewardedXP.value = 0
       rewardedCoins.value = 0
     }
@@ -41,20 +43,35 @@ watch(
 )
 
 async function awardRewards() {
-  // Calculate XP
-  let totalXP = props.xpEarned
-  if (props.perfectScore) totalXP += 50
+  // 🔹 Calculate base XP (before any multipliers)
+  let baseXP = props.xpEarned
+  if (props.perfectScore) baseXP += 50
 
-  // Apply Double XP boost (only if actually active)
-  if (isDoubleXPActive.value) {
-    totalXP *= 2
+  console.log('🎯 Base XP:', baseXP) // Debug log
+  console.log('🎯 Double XP Active?', isDoubleXPActive.value) // Debug log
+
+  // 🔹 Check Double XP status ONCE and store it
+  const shouldApplyDoubleXP = isDoubleXPActive.value
+
+  // 🔹 Calculate final XP
+  let finalXP = baseXP
+  if (shouldApplyDoubleXP) {
+    finalXP = baseXP * 2
+    appliedDoubleXP.value = true
+    console.log('🎯 Applying 2X multiplier. Final XP:', finalXP) // Debug log
+
+    // 🔹 Consume the powerup IMMEDIATELY
     await consumeDoubleXP()
+    console.log('🎯 Double XP consumed. Still active?', isDoubleXPActive.value) // Debug log
   }
 
-  rewardedXP.value = totalXP
+  // 🔹 Store the final XP for display
+  rewardedXP.value = finalXP
 
-  // Award XP and Coins
-  await addXP(totalXP)
+  console.log('🎯 Final rewarded XP:', rewardedXP.value) // Debug log
+
+  // 🔹 Award XP and Coins (pass the already-calculated XP, no multipliers in addXP)
+  await addXP(finalXP)
   rewardedCoins.value = props.coinsEarned
   await addCoins(props.coinsEarned)
 }
@@ -95,7 +112,7 @@ function continueNext() {
           <div class="reward-item xp-reward">
             <v-icon color="indigo">mdi-lightning-bolt</v-icon>
             <span>+{{ rewardedXP }} XP</span>
-            <v-chip v-if="isDoubleXPActive" color="amber" size="x-small" class="ml-2">
+            <v-chip v-if="appliedDoubleXP" color="amber" size="x-small" class="ml-2">
               2X BOOST!
             </v-chip>
           </div>

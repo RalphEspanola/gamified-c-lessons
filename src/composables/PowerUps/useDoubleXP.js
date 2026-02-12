@@ -1,8 +1,8 @@
-// composables/PowerUps/useDoubleXP.js
 import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 
 const isDoubleXPActive = ref(false)
+const isConsuming = ref(false) // 🔹 Prevent double consumption
 
 export function useDoubleXP() {
   // 🔹 Check if user actually owns Double XP in inventory
@@ -92,13 +92,21 @@ export function useDoubleXP() {
   }
 
   const consumeDoubleXP = async () => {
-    if (!isDoubleXPActive.value) return
+    // 🔹 Prevent multiple simultaneous consumption
+    if (!isDoubleXPActive.value || isConsuming.value) {
+      return
+    }
+
+    isConsuming.value = true
 
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        isConsuming.value = false
+        return
+      }
 
       // Deduct from inventory
       const { data: current } = await supabase
@@ -119,11 +127,14 @@ export function useDoubleXP() {
           .eq('item_key', 'double_xp')
       }
 
-      // Deactivate
+      // 🔹 Deactivate IMMEDIATELY (before saving to DB)
       isDoubleXPActive.value = false
       await saveToSupabase()
     } catch (error) {
       console.error('Error consuming double XP:', error)
+    } finally {
+      // 🔹 Always reset the consuming flag
+      isConsuming.value = false
     }
   }
 

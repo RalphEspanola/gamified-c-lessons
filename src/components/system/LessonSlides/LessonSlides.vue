@@ -125,22 +125,27 @@ async function handleCompleteLesson() {
 
   const perfectScore = !hadMistake.value
 
-  // Calculate rewards
+  // ✅ Calculate BASE rewards (WITHOUT Double XP multiplier)
   let xpReward = props.mode === 'quiz' ? 150 : 100
   let coinsReward = props.mode === 'quiz' ? 20 : 10
 
+  // Perfect score bonus is added to base XP
   if (perfectScore) {
     xpReward += 50 // Bonus for perfect score
   }
 
-  // Check for Double XP boost
-  if (isDoubleXPActive.value) {
-    xpReward *= 2 // Double the XP
-  }
+  // ❌ REMOVED: Do NOT apply Double XP here - let the dialog handle it
+  // if (isDoubleXPActive.value) {
+  //   xpReward *= 2
+  // }
 
-  // Set reward payload
+  console.log('🎁 Base XP reward:', xpReward)
+  console.log('🎁 Perfect score:', perfectScore)
+  console.log('⚡ Double XP active:', isDoubleXPActive.value)
+
+  // Set reward payload (BASE values only)
   rewardPayload.value = {
-    xp: xpReward,
+    xp: xpReward, // Base XP (100 or 150, +50 if perfect)
     coins: coinsReward,
     hearts: 1,
     perfect: perfectScore,
@@ -153,7 +158,7 @@ async function handleCompleteLesson() {
   // ✅ Mark as awarded BEFORE showing dialog
   hasAwardedRewardsThisSession.value = true
 
-  // Show reward dialog (will actually award XP and coins)
+  // Show reward dialog (will handle Double XP and actually award XP/coins)
   showRewardDialog.value = true
 
   // Save completion to database
