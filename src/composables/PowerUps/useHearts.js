@@ -7,10 +7,10 @@ const REFILL_TIME = 30 * 60 * 1000 // 30 minutes in ms
 
 // Global reactive state
 const hearts = ref(MAX_HEARTS)
-const lastLostTime = ref(null) // ✅ Changed to null initially
+const nextRefillTime = ref(null) // ✅ Track when the NEXT heart should refill
 let refillInterval = null
 const loading = ref(true)
-const initialized = ref(false) // ✅ Track if we've initialized
+const initialized = ref(false)
 
 export function useHearts() {
   // ---------- HELPERS ----------
@@ -29,7 +29,7 @@ export function useHearts() {
     try {
       const { data, error } = await supabase
         .from('user_stats')
-        .select('hearts, last_lost_time')
+        .select('hearts, next_refill_time')
         .eq('user_id', userId)
         .single()
 
@@ -38,28 +38,29 @@ export function useHearts() {
       if (data) {
         hearts.value = data.hearts ?? MAX_HEARTS
 
-        // ✅ Parse the timestamp correctly
-        const savedTime = data.last_lost_time
-        if (savedTime) {
-          // If it's a string (ISO format), parse it
-          lastLostTime.value =
+        // ✅ Load the next refill time
+        const savedTime = data.next_refill_time
+        if (savedTime && hearts.value < MAX_HEARTS) {
+          nextRefillTime.value =
             typeof savedTime === 'string' ? new Date(savedTime).getTime() : savedTime
         } else {
-          lastLostTime.value = Date.now()
+          nextRefillTime.value = null
         }
 
         console.log('💾 Loaded hearts:', hearts.value)
-        console.log('⏰ Last lost time:', new Date(lastLostTime.value).toLocaleString())
+        console.log(
+          '⏰ Next refill time:',
+          nextRefillTime.value ? new Date(nextRefillTime.value).toLocaleString() : 'N/A',
+        )
       } else {
         // First-time user, insert row
-        const now = Date.now()
         hearts.value = MAX_HEARTS
-        lastLostTime.value = now
+        nextRefillTime.value = null
 
         await supabase.from('user_stats').insert({
           user_id: userId,
           hearts: MAX_HEARTS,
-          last_lost_time: now,
+          next_refill_time: null,
         })
 
         console.log('✨ Created new user stats')
@@ -79,15 +80,15 @@ export function useHearts() {
       console.log(
         '💾 Saving hearts:',
         hearts.value,
-        'Last lost:',
-        new Date(lastLostTime.value).toLocaleString(),
+        'Next refill:',
+        nextRefillTime.value ? new Date(nextRefillTime.value).toLocaleString() : 'N/A',
       )
 
       await supabase
         .from('user_stats')
         .update({
           hearts: hearts.value,
-          last_lost_time: lastLostTime.value,
+          next_refill_time: nextRefillTime.value,
         })
         .eq('user_id', userId)
     } catch (err) {
@@ -97,28 +98,32 @@ export function useHearts() {
 
   // ---------- REFILL LOGIC ----------
   const refillHearts = async () => {
-    if (hearts.value >= MAX_HEARTS) return
-    if (!lastLostTime.value) return // ✅ Don't refill if we don't have a valid timestamp
-
-    const now = Date.now()
-    const timePassed = now - lastLostTime.value
-
-    // ✅ Only refill if at least REFILL_TIME has passed
-    if (timePassed < REFILL_TIME) {
-      return // Not enough time has passed yet
+    // If at max hearts, clear the refill timer
+    if (hearts.value >= MAX_HEARTS) {
+      nextRefillTime.value = null
+      return
     }
 
-    const heartsToRefill = Math.floor(timePassed / REFILL_TIME)
+    // If no refill time set, set it now
+    if (!nextRefillTime.value) {
+      nextRefillTime.value = Date.now() + REFILL_TIME
+      await saveData()
+      return
+    }
 
-    if (heartsToRefill > 0) {
-      const newHearts = Math.min(MAX_HEARTS, hearts.value + heartsToRefill)
+    const now = Date.now()
 
-      console.log(`💗 Refilling ${heartsToRefill} heart(s). ${hearts.value} → ${newHearts}`)
+    // ✅ Check if it's time to refill
+    if (now >= nextRefillTime.value) {
+      hearts.value++
+      console.log(`💗 Refilled 1 heart. Hearts: ${hearts.value}`)
 
-      hearts.value = newHearts
-
-      // ✅ Update lastLostTime correctly
-      lastLostTime.value = now - (timePassed % REFILL_TIME)
+      // Set next refill time
+      if (hearts.value < MAX_HEARTS) {
+        nextRefillTime.value = now + REFILL_TIME
+      } else {
+        nextRefillTime.value = null
+      }
 
       await saveData()
     }
@@ -143,7 +148,12 @@ export function useHearts() {
   const loseHeart = async () => {
     if (hearts.value > 0) {
       hearts.value--
-      lastLostTime.value = Date.now()
+
+      // ✅ Set next refill time if this is the first heart lost
+      if (hearts.value === MAX_HEARTS - 1 && !nextRefillTime.value) {
+        nextRefillTime.value = Date.now() + REFILL_TIME
+      }
+
       console.log(`💔 Lost a heart. Hearts: ${hearts.value}`)
       await saveData()
       return true
@@ -155,6 +165,12 @@ export function useHearts() {
     if (hearts.value < MAX_HEARTS) {
       hearts.value++
       console.log(`💚 Gained a heart. Hearts: ${hearts.value}`)
+
+      // ✅ If we're at max, clear the refill timer
+      if (hearts.value >= MAX_HEARTS) {
+        nextRefillTime.value = null
+      }
+
       await saveData()
       return true
     }
@@ -163,12 +179,12 @@ export function useHearts() {
 
   const restoreAllHearts = async () => {
     hearts.value = MAX_HEARTS
-    lastLostTime.value = Date.now()
+    nextRefillTime.value = null
     console.log(`✨ Restored all hearts to ${MAX_HEARTS}`)
     await saveData()
   }
 
-  // ✅ Add initialize function for consistency
+  // ✅ Initialize function
   const initializeHearts = async () => {
     if (initialized.value) {
       console.log('⏭️ Hearts already initialized')
@@ -186,14 +202,12 @@ export function useHearts() {
   const canContinue = computed(() => hearts.value > 0)
 
   const timeUntilNextHeart = computed(() => {
-    if (hearts.value >= MAX_HEARTS) return 0
-    if (!lastLostTime.value) return 0
+    if (hearts.value >= MAX_HEARTS || !nextRefillTime.value) return 0
 
     const now = Date.now()
-    const timePassed = now - lastLostTime.value
-    const remaining = REFILL_TIME - (timePassed % REFILL_TIME)
+    const remaining = nextRefillTime.value - now
 
-    return remaining
+    return Math.max(0, remaining)
   })
 
   const formattedTimeRemaining = computed(() => {
@@ -226,6 +240,6 @@ export function useHearts() {
     formattedTimeRemaining,
     heartPercentage,
     loading,
-    initializeHearts, // ✅ Export this
+    initializeHearts,
   }
 }
