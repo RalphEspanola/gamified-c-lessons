@@ -1,5 +1,6 @@
 <script setup>
 import { useHearts } from '@/composables/PowerUps/useHearts'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -7,10 +8,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const router = useRouter()
 const { formattedTimeRemaining, hearts } = useHearts()
 
 const close = () => {
   emit('update:modelValue', false)
+  router.push('/')
 }
 </script>
 

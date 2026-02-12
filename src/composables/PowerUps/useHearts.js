@@ -7,15 +7,18 @@ const REFILL_TIME = 30 * 60 * 1000 // 30 minutes in ms
 
 // Global reactive state
 const hearts = ref(MAX_HEARTS)
-const lastLostTime = ref(Date.now())
+const lastLostTime = ref(null) // ✅ Changed to null initially
 let refillInterval = null
 const loading = ref(true)
+const initialized = ref(false) // ✅ Track if we've initialized
 
 export function useHearts() {
   // ---------- HELPERS ----------
   const getUserId = async () => {
-    const { data } = await supabase.auth.getUser()
-    return data.user?.id
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    return user?.id
   }
 
   const loadData = async () => {
@@ -34,17 +37,35 @@ export function useHearts() {
 
       if (data) {
         hearts.value = data.hearts ?? MAX_HEARTS
-        lastLostTime.value = data.last_lost_time ?? Date.now()
+
+        // ✅ Parse the timestamp correctly
+        const savedTime = data.last_lost_time
+        if (savedTime) {
+          // If it's a string (ISO format), parse it
+          lastLostTime.value =
+            typeof savedTime === 'string' ? new Date(savedTime).getTime() : savedTime
+        } else {
+          lastLostTime.value = Date.now()
+        }
+
+        console.log('💾 Loaded hearts:', hearts.value)
+        console.log('⏰ Last lost time:', new Date(lastLostTime.value).toLocaleString())
       } else {
         // First-time user, insert row
+        const now = Date.now()
+        hearts.value = MAX_HEARTS
+        lastLostTime.value = now
+
         await supabase.from('user_stats').insert({
           user_id: userId,
           hearts: MAX_HEARTS,
-          last_lost_time: Date.now(),
+          last_lost_time: now,
         })
+
+        console.log('✨ Created new user stats')
       }
     } catch (err) {
-      console.warn('Failed to load hearts from Supabase', err.message)
+      console.error('❌ Failed to load hearts from Supabase:', err.message)
     } finally {
       loading.value = false
     }
@@ -55,6 +76,13 @@ export function useHearts() {
     if (!userId) return
 
     try {
+      console.log(
+        '💾 Saving hearts:',
+        hearts.value,
+        'Last lost:',
+        new Date(lastLostTime.value).toLocaleString(),
+      )
+
       await supabase
         .from('user_stats')
         .update({
@@ -63,33 +91,49 @@ export function useHearts() {
         })
         .eq('user_id', userId)
     } catch (err) {
-      console.warn('Failed to save hearts to Supabase', err.message)
+      console.error('❌ Failed to save hearts to Supabase:', err.message)
     }
   }
 
   // ---------- REFILL LOGIC ----------
   const refillHearts = async () => {
     if (hearts.value >= MAX_HEARTS) return
+    if (!lastLostTime.value) return // ✅ Don't refill if we don't have a valid timestamp
 
     const now = Date.now()
     const timePassed = now - lastLostTime.value
+
+    // ✅ Only refill if at least REFILL_TIME has passed
+    if (timePassed < REFILL_TIME) {
+      return // Not enough time has passed yet
+    }
+
     const heartsToRefill = Math.floor(timePassed / REFILL_TIME)
 
     if (heartsToRefill > 0) {
-      hearts.value = Math.min(MAX_HEARTS, hearts.value + heartsToRefill)
+      const newHearts = Math.min(MAX_HEARTS, hearts.value + heartsToRefill)
+
+      console.log(`💗 Refilling ${heartsToRefill} heart(s). ${hearts.value} → ${newHearts}`)
+
+      hearts.value = newHearts
+
+      // ✅ Update lastLostTime correctly
       lastLostTime.value = now - (timePassed % REFILL_TIME)
+
       await saveData()
     }
   }
 
   const startRefillInterval = () => {
     if (!refillInterval) {
+      console.log('▶️ Starting refill interval')
       refillInterval = setInterval(refillHearts, 1000)
     }
   }
 
   const stopRefillInterval = () => {
     if (refillInterval) {
+      console.log('⏸️ Stopping refill interval')
       clearInterval(refillInterval)
       refillInterval = null
     }
@@ -100,6 +144,7 @@ export function useHearts() {
     if (hearts.value > 0) {
       hearts.value--
       lastLostTime.value = Date.now()
+      console.log(`💔 Lost a heart. Hearts: ${hearts.value}`)
       await saveData()
       return true
     }
@@ -109,6 +154,7 @@ export function useHearts() {
   const gainHeart = async () => {
     if (hearts.value < MAX_HEARTS) {
       hearts.value++
+      console.log(`💚 Gained a heart. Hearts: ${hearts.value}`)
       await saveData()
       return true
     }
@@ -118,7 +164,22 @@ export function useHearts() {
   const restoreAllHearts = async () => {
     hearts.value = MAX_HEARTS
     lastLostTime.value = Date.now()
+    console.log(`✨ Restored all hearts to ${MAX_HEARTS}`)
     await saveData()
+  }
+
+  // ✅ Add initialize function for consistency
+  const initializeHearts = async () => {
+    if (initialized.value) {
+      console.log('⏭️ Hearts already initialized')
+      return
+    }
+
+    console.log('🔄 Initializing hearts...')
+    await loadData()
+    await refillHearts() // Check for refills after loading
+    startRefillInterval()
+    initialized.value = true
   }
 
   // ---------- COMPUTED ----------
@@ -126,9 +187,13 @@ export function useHearts() {
 
   const timeUntilNextHeart = computed(() => {
     if (hearts.value >= MAX_HEARTS) return 0
+    if (!lastLostTime.value) return 0
+
     const now = Date.now()
     const timePassed = now - lastLostTime.value
-    return REFILL_TIME - (timePassed % REFILL_TIME)
+    const remaining = REFILL_TIME - (timePassed % REFILL_TIME)
+
+    return remaining
   })
 
   const formattedTimeRemaining = computed(() => {
@@ -142,10 +207,7 @@ export function useHearts() {
 
   // ---------- LIFECYCLE ----------
   onMounted(() => {
-    loadData().then(() => {
-      startRefillInterval()
-      refillHearts()
-    })
+    initializeHearts()
   })
 
   onUnmounted(() => {
@@ -164,5 +226,6 @@ export function useHearts() {
     formattedTimeRemaining,
     heartPercentage,
     loading,
+    initializeHearts, // ✅ Export this
   }
 }

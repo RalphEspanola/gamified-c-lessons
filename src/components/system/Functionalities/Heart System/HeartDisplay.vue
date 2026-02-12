@@ -1,22 +1,27 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import { useHearts } from '@/composables/PowerUps/useHearts'
 
-const { hearts, MAX_HEARTS, refillHearts, formattedTimeRemaining, canContinue } = useHearts()
+const {
+  hearts,
+  MAX_HEARTS,
+  refillHearts,
+  formattedTimeRemaining,
+  canContinue,
+  initializeHearts, // ✅ Add this if it exists
+} = useHearts()
 
-let interval
+// ✅ Only trigger a refill check on mount, don't start another interval
+onMounted(async () => {
+  // If you have an initialize function, call it
+  // await initializeHearts()
 
-onMounted(() => {
-  refillHearts()
-  // Check every second for heart refills
-  interval = setInterval(() => {
-    refillHearts()
-  }, 1000)
+  // Trigger one refill check when component mounts
+  await refillHearts()
 })
 
-onUnmounted(() => {
-  clearInterval(interval)
-})
+// ❌ REMOVED: Don't start another interval here!
+// ❌ REMOVED: onUnmounted cleanup
 </script>
 
 <template>

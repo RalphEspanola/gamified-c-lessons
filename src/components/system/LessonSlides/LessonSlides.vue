@@ -51,7 +51,7 @@ const rewardPayload = ref({
 
 // Composables
 const { coins, addCoins, initializeShop } = useShop()
-const { canContinue, loseHeart, gainHeart, initializeHearts } = useHearts()
+const { canContinue, loseHeart, gainHeart, initializeHearts, hearts } = useHearts()
 const {
   completeLesson: completeLessonProgress,
   completeQuiz,
@@ -80,6 +80,13 @@ onMounted(async () => {
   ])
 
   console.log('📚 Lesson already completed on mount:', alreadyCompleted.value)
+
+  // ✅ Check if user has hearts when entering the lesson
+  // Allow access if: (1) lesson is already completed (review mode) OR (2) user has hearts
+  if (!alreadyCompleted.value && !canContinue.value) {
+    console.log('❌ No hearts available - showing dialog')
+    showNoHeartsDialog.value = true
+  }
 })
 
 const slide = computed(() => props.slides[currentSlide.value])
@@ -97,6 +104,12 @@ function handleCorrectAnswer() {
 
 // --- Navigation ---
 function nextSlide() {
+  // ✅ Check hearts before allowing navigation (except in review mode)
+  if (!alreadyCompleted.value && !canContinue.value) {
+    showNoHeartsDialog.value = true
+    return
+  }
+
   if (currentSlide.value < props.slides.length - 1) currentSlide.value++
 }
 
@@ -106,6 +119,15 @@ function prevSlide() {
 
 function goBack() {
   router.push(props.backRoute)
+}
+
+// ✅ Handle when NoHeartsDialog closes (user needs to go back)
+function handleNoHeartsClose() {
+  showNoHeartsDialog.value = false
+  // Redirect user back if they have no hearts
+  if (!canContinue.value && !alreadyCompleted.value) {
+    router.push(props.backRoute)
+  }
 }
 
 // --- Complete Lesson / Quiz ---
@@ -133,11 +155,6 @@ async function handleCompleteLesson() {
   if (perfectScore) {
     xpReward += 50 // Bonus for perfect score
   }
-
-  // ❌ REMOVED: Do NOT apply Double XP here - let the dialog handle it
-  // if (isDoubleXPActive.value) {
-  //   xpReward *= 2
-  // }
 
   console.log('🎁 Base XP reward:', xpReward)
   console.log('🎁 Perfect score:', perfectScore)
@@ -302,7 +319,7 @@ function continueAfterReward() {
     </div>
 
     <!-- Dialogs -->
-    <NoHeartsDialog v-model="showNoHeartsDialog" />
+    <NoHeartsDialog v-model="showNoHeartsDialog" @update:model-value="handleNoHeartsClose" />
     <CoinRewardDialog
       v-model="showRewardDialog"
       :xp-earned="rewardPayload.xp"

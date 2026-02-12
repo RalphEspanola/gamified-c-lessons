@@ -1,13 +1,17 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLearningProgress } from '@/composables/system/useLearningProgress'
 import { useHearts } from '@/composables/PowerUps/useHearts'
+import NoHeartsDialog from '../Functionalities/Heart System/NoHeartsDialog.vue'
 
 const router = useRouter()
 
 const { canContinue } = useHearts()
 const { topics, initializeProgress } = useLearningProgress()
+
+// ✅ Add dialog state
+const showNoHeartsDialog = ref(false)
 
 // 🔹 Initialize progress on mount
 onMounted(async () => {
@@ -17,8 +21,9 @@ onMounted(async () => {
 const continueLesson = (lesson) => {
   if (lesson.status === 'locked') return
 
+  // ✅ Show dialog instead of alert
   if (!canContinue.value) {
-    alert('You have no hearts left! Wait for refills or earn more hearts.')
+    showNoHeartsDialog.value = true
     return
   }
 
@@ -112,6 +117,9 @@ const getButtonConfig = (status) => {
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card>
+
+    <!-- ✅ No Hearts Dialog -->
+    <NoHeartsDialog v-model="showNoHeartsDialog" />
   </div>
 </template>
 
