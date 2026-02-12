@@ -157,5 +157,6 @@ int main() {
     :lesson-id="lessonId"
     back-route="/"
     complete-route="/"
+    @lesson-complete="handleLessonComplete"
   />
 </template>

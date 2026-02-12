@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 1: Control Structures'
 const lessonDescription = 'Understanding program flow and control mechanisms'
 const topicId = 2 // Topic
@@ -197,10 +197,6 @@ int main() {
 Combining these structures helps create flexible, logical programs.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

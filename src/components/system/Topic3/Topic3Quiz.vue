@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'End of Topic Quiz – Topic 3: Looping'
 const lessonDescription = 'Test your understanding of loops in C programming'
 const topicId = 3
@@ -228,11 +228,6 @@ while (i <= 5) {
     },
   },
 ]
-const { completeQuiz } = useLearningProgress()
-
-function handleQuizComplete() {
-  completeQuiz(topicId)
-}
 </script>
 
 <template>
@@ -242,7 +237,6 @@ function handleQuizComplete() {
     :lesson-description="lessonDescription"
     :slides="slides"
     :topic-id="topicId"
-    :lesson-id="0"
     back-route="/"
     complete-route="/"
     @quiz-complete="handleQuizComplete"

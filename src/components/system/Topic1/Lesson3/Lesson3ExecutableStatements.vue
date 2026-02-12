@@ -1,12 +1,5 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
-
-const { completeLesson } = useLearningProgress()
-
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 
 const lessonTitle = 'Lesson 3: Executable Statements (Input & Output)'
 const lessonDescription = 'Master input and output operations'

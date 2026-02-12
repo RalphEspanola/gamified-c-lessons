@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 5: Designing Functions'
 const lessonDescription = 'Learning how to design well-structured functions in C'
 const topicId = 4 // Topic
@@ -217,10 +217,6 @@ void checkNumber(int num) {
 • Well-designed functions make code easier to debug and maintain.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

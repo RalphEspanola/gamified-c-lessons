@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 3: The If Statement'
 const lessonDescription = 'Making simple decisions with if statements'
 const topicId = 2 // Topic
@@ -142,10 +142,6 @@ int main() {
 - Use == for comparison, not = (which assigns values).`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

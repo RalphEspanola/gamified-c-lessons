@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 4: Arithmetic Expressions'
 const lessonDescription = 'Understanding arithmetic operators in C'
 const topicId = 1 // Topic
@@ -119,10 +119,6 @@ printf("x - y = %d\\n", x - y);`,
 • Always match data types (int vs float) when doing calculations.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

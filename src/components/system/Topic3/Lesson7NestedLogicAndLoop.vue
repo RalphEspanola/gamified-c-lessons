@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 7: Nested Logic and Loop'
 const lessonDescription = 'Understanding nested loops in C programming'
 const topicId = 3 // Topic
@@ -192,10 +192,6 @@ int main() {
 • Loops can contain conditional logic (if statements) for more control — that's called nested logic.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

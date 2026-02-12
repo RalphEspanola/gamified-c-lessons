@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 3: Syntax and Semantics of Void Functions'
 const lessonDescription = 'Understanding void function syntax and semantics in C'
 const topicId = 4 // Topic
@@ -214,10 +214,6 @@ void displayName() {  // Definition
     ],
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

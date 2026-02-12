@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 6: The For Statement'
 const lessonDescription = 'Understanding for loops in C programming'
 const topicId = 3 // Topic
@@ -191,10 +191,6 @@ int main() {
 • It's cleaner and easier to read than equivalent while loops.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

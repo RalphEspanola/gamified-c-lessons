@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 3: Multidimensional Arrays'
 const lessonDescription = 'Understanding multidimensional arrays in C programming'
 const topicId = 5 // Topic
@@ -276,10 +276,6 @@ int main() {
 • 3D arrays can represent data with multiple layers (like semester, subject, and quiz).`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

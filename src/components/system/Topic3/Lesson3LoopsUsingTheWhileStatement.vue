@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 3: Loops Using the While Statement'
 const lessonDescription = 'Practical applications of while loops in C programming'
 const topicId = 3 // Topic
@@ -180,10 +180,6 @@ while (x < 8) {
 • Example uses: counting, summing values, validating input.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 4: Basic String Manipulations and Functions'
 const lessonDescription = 'Mastering string manipulation functions in C'
 const topicId = 5 // Topic
@@ -266,10 +266,6 @@ your program might crash or behave unpredictably.
 • Always allocate enough memory for destination arrays.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

@@ -1,10 +1,13 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 2: Variables and Data Types'
 const lessonDescription = 'Understanding variables and data types in C'
 const topicId = 1 // Topic 1
 const lessonId = 2 // Lesson 2
+function handleLessonComplete() {
+  console.log('✅ Lesson 1 completed!')
+}
 
 const slides = [
   {
@@ -152,11 +155,6 @@ int main() {
   - %c for char`,
   },
 ]
-
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

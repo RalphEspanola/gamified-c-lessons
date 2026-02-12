@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 5: The Do–While Statement'
 const lessonDescription = 'Understanding do-while loops in C programming'
 const topicId = 3 // Topic
@@ -214,10 +214,6 @@ Structure:`,
     ],
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

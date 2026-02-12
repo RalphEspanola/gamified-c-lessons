@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 2: Phases of Loop Execution'
 const lessonDescription = 'Understanding the three phases of loop execution in C'
 const topicId = 3 // Topic
@@ -133,10 +133,6 @@ while (x < 5) {         // [__________]
 • Understanding these phases helps you control and predict how loops behave.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>

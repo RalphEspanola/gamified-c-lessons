@@ -1,6 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
-import { useLearningProgress } from '@/composables/system/useLearningProgress'
+
 const lessonTitle = 'Lesson 2: An Overview of User-Defined Functions'
 const lessonDescription = 'Understanding user-defined functions in C programming'
 const topicId = 4 // Topic
@@ -207,10 +207,6 @@ void welcome() {  // Function Definition
 • User-defined functions make programs organized, reusable, and modular.`,
   },
 ]
-const { completeLesson } = useLearningProgress()
-function handleLessonComplete() {
-  completeLesson(topicId, lessonId)
-}
 </script>
 
 <template>
