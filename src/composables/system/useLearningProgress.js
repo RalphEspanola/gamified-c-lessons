@@ -1,4 +1,3 @@
-// composables/system/useLearningProgress.js
 import { ref } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { topic1 } from '@/components/system/Dashboard/Data/topic1Data'
@@ -9,17 +8,13 @@ import { topic5 } from '@/components/system/Dashboard/Data/topic5Data'
 
 const allTopics = [topic1, topic2, topic3, topic4, topic5]
 const topics = ref([])
-
-// Track state
 const completedLessons = ref([])
 const completedQuizzes = ref([])
-const unlockedTopics = ref([1]) // Topic 1 is unlocked by default
+const unlockedTopics = ref([1])
 const isInitialized = ref(false)
 
 export function useLearningProgress() {
-  // 🔹 Initialize user progress from Supabase
   const initializeProgress = async () => {
-    // Prevent duplicate initialization
     if (isInitialized.value) {
       console.log('Progress already initialized')
       return
@@ -38,7 +33,6 @@ export function useLearningProgress() {
 
       console.log('🔍 Loading progress for user:', user.id)
 
-      // Fetch user progress
       const { data: progressData, error } = await supabase
         .from('user_learning_progress')
         .select('*')
@@ -51,19 +45,16 @@ export function useLearningProgress() {
 
       console.log('📊 Progress data:', progressData)
 
-      // If no progress exists, create default
       if (!progressData || progressData.length === 0) {
         console.log('🆕 No progress found, creating default...')
         await createDefaultProgress(user.id)
         isInitialized.value = true
-        return await initializeProgress() // Reload after creation
+        return await initializeProgress()
       }
 
-      // ✅ FIXED: Clear arrays before rebuilding
       completedLessons.value = []
       completedQuizzes.value = []
 
-      // Calculate completed lessons and quizzes for sequential unlocking
       progressData.forEach((p) => {
         if (p.status === 'completed') {
           if (p.lesson_id !== null) {
@@ -77,10 +68,8 @@ export function useLearningProgress() {
       console.log('📚 Completed lessons:', completedLessons.value)
       console.log('📝 Completed quizzes:', completedQuizzes.value)
 
-      // Calculate unlocked topics based on completed quizzes (sequential)
       calculateUnlockedTopics()
 
-      // Merge hardcoded topics with DB progress
       topics.value = allTopics.map((topic) => {
         const topicProgress = progressData.filter((p) => p.topic_id === topic.id)
         const isTopicUnlocked = unlockedTopics.value.includes(topic.id)
@@ -88,16 +77,10 @@ export function useLearningProgress() {
         const lessons = topic.lessons.map((lesson) => {
           const progress = topicProgress.find((p) => p.lesson_id === lesson.id && !p.quiz_completed)
 
-          // Override status based on unlocked state
           let status = progress?.status || 'locked'
-          if (!isTopicUnlocked) {
-            status = 'locked'
-          }
+          if (!isTopicUnlocked) status = 'locked'
 
-          return {
-            ...lesson,
-            status,
-          }
+          return { ...lesson, status }
         })
 
         const quizProgress = topicProgress.find((p) => p.lesson_id === null)
@@ -122,21 +105,16 @@ export function useLearningProgress() {
     }
   }
 
-  // 🔹 Calculate which topics should be unlocked (sequential)
   const calculateUnlockedTopics = () => {
-    // Topic 1 is always unlocked
     const unlocked = [1]
 
-    // Check each subsequent topic sequentially
     for (let topicId = 1; topicId <= allTopics.length; topicId++) {
-      // If previous topic's quiz is completed, unlock next topic
       if (completedQuizzes.value.includes(topicId)) {
         const nextTopicId = topicId + 1
         if (nextTopicId <= allTopics.length) {
           unlocked.push(nextTopicId)
         }
       } else {
-        // Stop at first non-completed topic (sequential unlock)
         break
       }
     }
@@ -145,13 +123,11 @@ export function useLearningProgress() {
     console.log('🔓 Unlocked topics:', unlocked)
   }
 
-  // 🔹 Create default progress
   const createDefaultProgress = async (userId) => {
     try {
       const defaultRecords = []
 
       allTopics.forEach((topic, topicIndex) => {
-        // Add lesson records
         topic.lessons.forEach((lesson, lessonIndex) => {
           defaultRecords.push({
             user_id: userId,
@@ -162,7 +138,6 @@ export function useLearningProgress() {
           })
         })
 
-        // Add quiz record
         defaultRecords.push({
           user_id: userId,
           topic_id: topic.id,
@@ -185,7 +160,6 @@ export function useLearningProgress() {
     }
   }
 
-  // ✅ FIXED: Check database directly, not just local state
   const isLessonCompleted = (topicId, lessonId) => {
     const lessonKey = `${topicId}-${lessonId}`
     const isCompleted = completedLessons.value.includes(lessonKey)
@@ -199,7 +173,6 @@ export function useLearningProgress() {
     return isCompleted
   }
 
-  // 🔹 Complete a lesson
   const completeLesson = async (topicId, lessonId) => {
     try {
       const {
@@ -209,7 +182,6 @@ export function useLearningProgress() {
 
       const lessonKey = `${topicId}-${lessonId}`
 
-      // ✅ FIXED: Check if already completed BEFORE doing anything
       if (isLessonCompleted(topicId, lessonId)) {
         console.log('⏭️ Lesson already completed, skipping:', lessonKey)
         return
@@ -217,7 +189,6 @@ export function useLearningProgress() {
 
       console.log('💾 Marking lesson as completed:', lessonKey)
 
-      // Update lesson status in database
       const { error } = await supabase
         .from('user_learning_progress')
         .update({ status: 'completed', updated_at: new Date().toISOString() })
@@ -227,20 +198,15 @@ export function useLearningProgress() {
 
       if (error) throw error
 
-      // ✅ Update tracking immediately
       completedLessons.value.push(lessonKey)
 
-      // Update local state
       const topic = topics.value.find((t) => t.id === topicId)
       if (!topic) return
 
       const lesson = topic.lessons.find((l) => l.id === lessonId)
       if (lesson) lesson.status = 'completed'
 
-      // Unlock next lesson
       await unlockNextLesson(user.id, topic)
-
-      // Update user stats
       await updateUserStats(user.id, { lessons_completed: 1 })
 
       console.log('✅ Lesson completed:', lessonKey)
@@ -249,7 +215,6 @@ export function useLearningProgress() {
     }
   }
 
-  // 🔹 Unlock next lesson
   const unlockNextLesson = async (userId, topic) => {
     const nextLocked = topic.lessons.find((l) => l.status === 'locked')
 
@@ -263,7 +228,6 @@ export function useLearningProgress() {
 
       if (!error) nextLocked.status = 'in-progress'
     } else {
-      // All lessons completed, unlock quiz
       const { error } = await supabase
         .from('user_learning_progress')
         .update({ status: 'in-progress', updated_at: new Date().toISOString() })
@@ -275,7 +239,6 @@ export function useLearningProgress() {
     }
   }
 
-  // 🔹 Complete quiz
   const completeQuiz = async (topicId) => {
     try {
       const {
@@ -283,7 +246,6 @@ export function useLearningProgress() {
       } = await supabase.auth.getUser()
       if (!user) return
 
-      // ✅ FIXED: Check if already completed BEFORE doing anything
       if (isQuizCompleted(topicId)) {
         console.log('⏭️ Quiz already completed, skipping:', topicId)
         return
@@ -304,7 +266,6 @@ export function useLearningProgress() {
 
       if (error) throw error
 
-      // ✅ Update tracking immediately
       completedQuizzes.value.push(topicId)
 
       const topic = topics.value.find((t) => t.id === topicId)
@@ -312,7 +273,6 @@ export function useLearningProgress() {
 
       await updateUserStats(user.id, { quizzes_completed: 1 })
 
-      // Unlock next topic (sequential)
       const nextTopicId = topicId + 1
       if (!unlockedTopics.value.includes(nextTopicId) && nextTopicId <= allTopics.length) {
         unlockedTopics.value.push(nextTopicId)
@@ -325,7 +285,6 @@ export function useLearningProgress() {
     }
   }
 
-  // 🔹 Unlock next topic
   const unlockNextTopic = async (userId, currentTopicId) => {
     const nextTopicId = currentTopicId + 1
     const nextTopic = topics.value.find((t) => t.id === nextTopicId)
@@ -345,29 +304,22 @@ export function useLearningProgress() {
     if (!error) firstLesson.status = 'in-progress'
   }
 
-  // 🔹 Update user stats
   const updateUserStats = async (userId, updates) => {
-    const { data: currentStats } = await supabase
-      .from('user_stats')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
+    const { error } = await supabase.rpc('increment_user_stats', {
+      p_user_id: userId,
+      p_lessons_completed: updates.lessons_completed || 0,
+      p_quizzes_completed: updates.quizzes_completed || 0,
+      p_xp: updates.xp || 0,
+      p_coins: updates.coins || 0,
+    })
 
-    const newStats = {
-      lessons_completed: (currentStats?.lessons_completed || 0) + (updates.lessons_completed || 0),
-      quizzes_completed: (currentStats?.quizzes_completed || 0) + (updates.quizzes_completed || 0),
-      xp: (currentStats?.xp || 0) + (updates.xp || 0),
-      coins: (currentStats?.coins || 0) + (updates.coins || 0),
-      updated_at: new Date().toISOString(),
+    if (error) {
+      console.error('❌ Error updating user stats:', error)
+      throw error
     }
-
-    await supabase.from('user_stats').upsert({ user_id: userId, ...newStats })
   }
 
-  // 🔹 Helper methods
-  const isTopicUnlocked = (topicId) => {
-    return unlockedTopics.value.includes(topicId)
-  }
+  const isTopicUnlocked = (topicId) => unlockedTopics.value.includes(topicId)
 
   const getTopicProgress = (topicId, totalLessons) => {
     if (!totalLessons || totalLessons === 0) return 0
@@ -383,15 +335,22 @@ export function useLearningProgress() {
     return completedCount >= totalLessons
   }
 
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    topics.value = []
+    completedLessons.value = []
+    completedQuizzes.value = []
+    unlockedTopics.value = [1]
+    isInitialized.value = false
+    console.log('🔄 Learning progress state reset')
+  }
+
   return {
-    // State
     topics,
     completedLessons,
     completedQuizzes,
     unlockedTopics,
     isInitialized,
-
-    // Methods
     initializeProgress,
     completeLesson,
     completeQuiz,
@@ -400,5 +359,6 @@ export function useLearningProgress() {
     isQuizCompleted,
     getTopicProgress,
     canTakeQuiz,
+    reset,
   }
 }

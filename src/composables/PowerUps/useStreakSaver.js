@@ -1,4 +1,3 @@
-// composables/PowerUps/useStreakSaver.js
 import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 
@@ -6,7 +5,6 @@ const streakProtectionActive = ref(false)
 const protectionExpiresAt = ref(null)
 
 export function useStreakSaver() {
-  // 🔹 Check if user actually owns Streak Saver in inventory
   const hasStreakSaverInInventory = async () => {
     try {
       const {
@@ -28,7 +26,6 @@ export function useStreakSaver() {
     }
   }
 
-  // 🔹 Initialize from Supabase
   const initializeStreakSaver = async () => {
     try {
       const {
@@ -43,7 +40,6 @@ export function useStreakSaver() {
         .single()
 
       if (data && data.streak_saver_active) {
-        // Verify they actually have it in inventory
         const hasInventory = await hasStreakSaverInInventory()
 
         if (hasInventory) {
@@ -52,12 +48,10 @@ export function useStreakSaver() {
             ? new Date(data.streak_saver_expires_at).getTime()
             : null
 
-          // Check if expired
           if (protectionExpiresAt.value && Date.now() > protectionExpiresAt.value) {
             await deactivateProtection()
           }
         } else {
-          // They don't have it, deactivate
           await deactivateProtection()
         }
       }
@@ -66,7 +60,6 @@ export function useStreakSaver() {
     }
   }
 
-  // 🔹 Save to Supabase
   const saveToSupabase = async () => {
     try {
       const {
@@ -90,7 +83,6 @@ export function useStreakSaver() {
   }
 
   const activateStreakSaver = async () => {
-    // Verify they have it before activating
     const hasInventory = await hasStreakSaverInInventory()
     if (!hasInventory) {
       console.warn('Cannot activate Streak Saver: not in inventory')
@@ -113,9 +105,7 @@ export function useStreakSaver() {
   }
 
   const isStreakProtected = computed(() => {
-    if (!streakProtectionActive.value || !protectionExpiresAt.value) {
-      return false
-    }
+    if (!streakProtectionActive.value || !protectionExpiresAt.value) return false
 
     if (Date.now() > protectionExpiresAt.value) {
       deactivateProtection()
@@ -134,7 +124,6 @@ export function useStreakSaver() {
       } = await supabase.auth.getUser()
       if (!user) return false
 
-      // Deduct from inventory
       const { data: current } = await supabase
         .from('user_inventory')
         .select('quantity')
@@ -142,18 +131,21 @@ export function useStreakSaver() {
         .eq('item_key', 'streak_saver')
         .single()
 
-      if (current && current.quantity > 0) {
-        await supabase
-          .from('user_inventory')
-          .update({
-            quantity: current.quantity - 1,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id)
-          .eq('item_key', 'streak_saver')
+      if (!current || current.quantity <= 0) {
+        console.warn('⚠️ Streak Saver not found in inventory — cannot consume')
+        await deactivateProtection()
+        return false
       }
 
-      // Deactivate protection
+      await supabase
+        .from('user_inventory')
+        .update({
+          quantity: current.quantity - 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('item_key', 'streak_saver')
+
       await deactivateProtection()
       return true
     } catch (error) {
@@ -173,6 +165,13 @@ export function useStreakSaver() {
     return `${hours}h ${minutes}m`
   })
 
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    streakProtectionActive.value = false
+    protectionExpiresAt.value = null
+    console.log('🔄 Streak Saver state reset')
+  }
+
   return {
     isStreakProtected,
     activateStreakSaver,
@@ -180,5 +179,6 @@ export function useStreakSaver() {
     timeRemaining,
     formattedTimeRemaining,
     initializeStreakSaver,
+    reset,
   }
 }

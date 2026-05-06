@@ -1,11 +1,10 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { supabase } from '@/utils/supabase'
 
 const isDoubleXPActive = ref(false)
-const isConsuming = ref(false) // 🔹 Prevent double consumption
+const isConsuming = ref(false)
 
 export function useDoubleXP() {
-  // 🔹 Check if user actually owns Double XP in inventory
   const hasDoubleXPInInventory = async () => {
     try {
       const {
@@ -27,7 +26,6 @@ export function useDoubleXP() {
     }
   }
 
-  // 🔹 Initialize from Supabase
   const initializeDoubleXP = async () => {
     try {
       const {
@@ -35,7 +33,6 @@ export function useDoubleXP() {
       } = await supabase.auth.getUser()
       if (!user) return
 
-      // Check if active flag is set
       const { data } = await supabase
         .from('user_powerups')
         .select('double_xp_active')
@@ -43,12 +40,10 @@ export function useDoubleXP() {
         .single()
 
       if (data && data.double_xp_active) {
-        // Verify they actually have it in inventory
         const hasInventory = await hasDoubleXPInInventory()
         if (hasInventory) {
           isDoubleXPActive.value = true
         } else {
-          // They don't have it, deactivate
           isDoubleXPActive.value = false
           await saveToSupabase()
         }
@@ -58,7 +53,6 @@ export function useDoubleXP() {
     }
   }
 
-  // 🔹 Save to Supabase
   const saveToSupabase = async () => {
     try {
       const {
@@ -79,7 +73,6 @@ export function useDoubleXP() {
   }
 
   const activateDoubleXP = async () => {
-    // Verify they have it before activating
     const hasInventory = await hasDoubleXPInInventory()
     if (!hasInventory) {
       console.warn('Cannot activate Double XP: not in inventory')
@@ -92,10 +85,7 @@ export function useDoubleXP() {
   }
 
   const consumeDoubleXP = async () => {
-    // 🔹 Prevent multiple simultaneous consumption
-    if (!isDoubleXPActive.value || isConsuming.value) {
-      return
-    }
+    if (!isDoubleXPActive.value || isConsuming.value) return
 
     isConsuming.value = true
 
@@ -108,7 +98,6 @@ export function useDoubleXP() {
         return
       }
 
-      // Deduct from inventory
       const { data: current } = await supabase
         .from('user_inventory')
         .select('quantity')
@@ -127,15 +116,20 @@ export function useDoubleXP() {
           .eq('item_key', 'double_xp')
       }
 
-      // 🔹 Deactivate IMMEDIATELY (before saving to DB)
       isDoubleXPActive.value = false
       await saveToSupabase()
     } catch (error) {
       console.error('Error consuming double XP:', error)
     } finally {
-      // 🔹 Always reset the consuming flag
       isConsuming.value = false
     }
+  }
+
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    isDoubleXPActive.value = false
+    isConsuming.value = false
+    console.log('🔄 Double XP state reset')
   }
 
   return {
@@ -143,5 +137,6 @@ export function useDoubleXP() {
     activateDoubleXP,
     consumeDoubleXP,
     initializeDoubleXP,
+    reset,
   }
 }

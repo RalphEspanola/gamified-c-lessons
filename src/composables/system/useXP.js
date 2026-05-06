@@ -1,13 +1,12 @@
-// composables/system/useXP.js
 import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 
+// Module-level — shared across all components (intentional)
 const xp = ref(0)
 const level = ref(1)
 const isInitialized = ref(false)
 
 export function useXP() {
-  // ✅ FIXED: Progressive XP calculation
   const calculateXPForLevel = (targetLevel) => {
     const baseXP = 100
     let totalXP = 0
@@ -22,21 +21,12 @@ export function useXP() {
     return Math.floor(baseXP * Math.pow(1.5, currentLevel - 1))
   }
 
-  const xpForCurrentLevel = computed(() => {
-    return calculateXPForLevel(level.value)
-  })
-
-  const xpForNextLevel = computed(() => {
-    return calculateXPForLevel(level.value + 1)
-  })
-
-  const xpNeededForNextLevel = computed(() => {
-    return calculateXPForNextLevel(level.value)
-  })
+  const xpForCurrentLevel = computed(() => calculateXPForLevel(level.value))
+  const xpForNextLevel = computed(() => calculateXPForLevel(level.value + 1))
+  const xpNeededForNextLevel = computed(() => calculateXPForNextLevel(level.value))
 
   const xpProgressInLevel = computed(() => {
-    const xpInCurrentLevel = xp.value - xpForCurrentLevel.value
-    return Math.max(0, xpInCurrentLevel)
+    return Math.max(0, xp.value - xpForCurrentLevel.value)
   })
 
   const xpProgressPercentage = computed(() => {
@@ -48,7 +38,6 @@ export function useXP() {
     return Math.max(0, xpNeededForNextLevel.value - xpProgressInLevel.value)
   })
 
-  // 🔹 Initialize from Supabase
   const initializeXP = async () => {
     if (isInitialized.value) {
       console.log('⚠️ XP already initialized, skipping...')
@@ -65,7 +54,6 @@ export function useXP() {
         return
       }
 
-      // 🔹 Get user stats with BOTH xp AND level
       const { data: stats, error } = await supabase
         .from('user_stats')
         .select('xp, level')
@@ -75,7 +63,6 @@ export function useXP() {
       if (error) {
         console.error('❌ Error fetching stats:', error)
 
-        // 🔹 If no stats exist, create initial record
         if (error.code === 'PGRST116') {
           console.log('📝 Creating initial user stats...')
           const { error: insertError } = await supabase.from('user_stats').insert({
@@ -116,7 +103,6 @@ export function useXP() {
     }
   }
 
-  // 🔹 Add XP and handle level ups
   const addXP = async (amount) => {
     if (!isInitialized.value) {
       console.warn('⚠️ XP not initialized yet, initializing now...')
@@ -136,16 +122,13 @@ export function useXP() {
       xp.value += amount
       console.log(`✨ Added ${amount} XP. Total: ${xp.value}`)
 
-      // Check for level up
       let levelsGained = 0
       while (xp.value >= xpForNextLevel.value) {
         level.value++
         levelsGained++
         console.log(`🎉 LEVEL UP! Now level ${level.value}`)
-        console.log(`📊 XP needed for next level: ${xpNeededForNextLevel.value}`)
       }
 
-      // 🔹 Save BOTH xp AND level to database
       const { error } = await supabase
         .from('user_stats')
         .update({
@@ -171,25 +154,27 @@ export function useXP() {
     }
   }
 
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    xp.value = 0
+    level.value = 1
+    isInitialized.value = false
+    console.log('🔄 XP state reset')
+  }
+
   return {
-    // State
     xp,
     level,
     isInitialized,
-
-    // Computed
     xpForCurrentLevel,
     xpForNextLevel,
     xpNeededForNextLevel,
     xpProgressInLevel,
     xpProgressPercentage,
     xpRemainingToNextLevel,
-
-    // Methods
     initializeXP,
     addXP,
-
-    // Helper
+    reset,
     XP_PER_LEVEL: computed(() => xpNeededForNextLevel.value),
   }
 }

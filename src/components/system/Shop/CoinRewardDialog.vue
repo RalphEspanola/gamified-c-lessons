@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useXP } from '@/composables/system/useXP'
-import { useDoubleXP } from '@/composables/PowerUps/useDoubleXP'
 import { useShop } from '@/composables/system/useShop'
 
 const props = defineProps({
@@ -10,21 +9,19 @@ const props = defineProps({
   coinsEarned: { type: Number, default: 10 },
   heartsEarned: { type: Number, default: 1 },
   perfectScore: { type: Boolean, default: false },
+  // ✅ Passed from LessonSlides — for display only, no recalculation here
+  doubleXPApplied: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'continue'])
 
-// Composables
 const { addXP } = useXP()
 const { addCoins } = useShop()
-const { isDoubleXPActive, consumeDoubleXP } = useDoubleXP()
 
 const rewardedXP = ref(0)
 const rewardedCoins = ref(0)
 const hasAwarded = ref(false)
-const appliedDoubleXP = ref(false)
 
-// 🔹 Watch for dialog opening and award rewards
 watch(
   () => props.modelValue,
   async (isOpen) => {
@@ -32,9 +29,7 @@ watch(
       await awardRewards()
       hasAwarded.value = true
     } else if (!isOpen) {
-      // Reset for next time
       hasAwarded.value = false
-      appliedDoubleXP.value = false
       rewardedXP.value = 0
       rewardedCoins.value = 0
     }
@@ -43,37 +38,15 @@ watch(
 )
 
 async function awardRewards() {
-  // 🔹 Calculate base XP (before any multipliers)
-  let baseXP = props.xpEarned
-  if (props.perfectScore) baseXP += 50
-
-  console.log('🎯 Base XP:', baseXP) // Debug log
-  console.log('🎯 Double XP Active?', isDoubleXPActive.value) // Debug log
-
-  // 🔹 Check Double XP status ONCE and store it
-  const shouldApplyDoubleXP = isDoubleXPActive.value
-
-  // 🔹 Calculate final XP
-  let finalXP = baseXP
-  if (shouldApplyDoubleXP) {
-    finalXP = baseXP * 2
-    appliedDoubleXP.value = true
-    console.log('🎯 Applying 2X multiplier. Final XP:', finalXP) // Debug log
-
-    // 🔹 Consume the powerup IMMEDIATELY
-    await consumeDoubleXP()
-    console.log('🎯 Double XP consumed. Still active?', isDoubleXPActive.value) // Debug log
-  }
-
-  // 🔹 Store the final XP for display
-  rewardedXP.value = finalXP
-
-  console.log('🎯 Final rewarded XP:', rewardedXP.value) // Debug log
-
-  // 🔹 Award XP and Coins (pass the already-calculated XP, no multipliers in addXP)
-  await addXP(finalXP)
+  // ✅ xpEarned is already final — LessonSlides handled doubling and perfect bonus
+  // This dialog just awards and displays, no recalculation
+  rewardedXP.value = props.xpEarned
   rewardedCoins.value = props.coinsEarned
+
+  await addXP(props.xpEarned)
   await addCoins(props.coinsEarned)
+
+  console.log('🎁 Rewards awarded — XP:', props.xpEarned, 'Coins:', props.coinsEarned)
 }
 
 function continueNext() {
@@ -108,11 +81,11 @@ function continueNext() {
             <span>+{{ heartsEarned }} Heart</span>
           </div>
 
-          <!-- XP -->
+          <!-- XP — 2X badge driven by prop from LessonSlides, not recalculated here -->
           <div class="reward-item xp-reward">
             <v-icon color="indigo">mdi-lightning-bolt</v-icon>
             <span>+{{ rewardedXP }} XP</span>
-            <v-chip v-if="appliedDoubleXP" color="amber" size="x-small" class="ml-2">
+            <v-chip v-if="doubleXPApplied" color="amber" size="x-small" class="ml-2">
               2X BOOST!
             </v-chip>
           </div>

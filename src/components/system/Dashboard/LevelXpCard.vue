@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useXP } from '@/composables/system/useXP'
 
 defineOptions({ inheritAttrs: false })

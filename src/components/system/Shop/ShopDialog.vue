@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useShop } from '@/composables/system/useShop'
-import { useHearts } from '@/composables/PowerUps/useHearts'
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
@@ -11,15 +10,12 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const { coins, canAfford, buyHeartRefill, buyPowerUp, initializeShop } = useShop()
-const { hearts, MAX_HEARTS, initializeHearts } = useHearts()
 
-// Initialize on mount
+// ✅ removed useHearts entirely — heart disabled state comes from shopItems via useShop
 onMounted(async () => {
   await initializeShop()
-  await initializeHearts()
 })
 
-// Use computed with getter/setter to sync v-model
 const localModel = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
@@ -54,7 +50,6 @@ async function buy(item) {
 
     if (success) {
       console.log(`✅ Successfully bought ${item.name}`)
-      // ✅ DON'T call initializeShop here - buyPowerUp already updated local state
     } else {
       console.log(`❌ Failed to buy ${item.name}`)
     }
@@ -82,7 +77,6 @@ async function buy(item) {
                 <div class="font-weight-medium mt-2">{{ item.name }}</div>
                 <div class="text-caption mb-2 text-center">{{ item.description }}</div>
 
-                <!-- Show owned quantity for powerups -->
                 <v-chip v-if="item.owned" color="primary" size="x-small" class="mb-2">
                   Owned: {{ item.owned }}
                 </v-chip>

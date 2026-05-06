@@ -1,13 +1,26 @@
-// composables/useDailyStreak.js
 import { ref } from 'vue'
 import { supabase } from '@/utils/supabase'
 
-const streak = ref(0)
-const longestStreak = ref(0)
-const lastLogin = ref(null)
+function getPHTDateString(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+}
+
+function getYesterdayPHTString() {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  return getPHTDateString(yesterday)
+}
 
 export function useDailyStreak() {
-  // 🔹 Initialize from Supabase
+  const streak = ref(0)
+  const longestStreak = ref(0)
+  const lastLogin = ref(null)
+
   const initializeStreak = async () => {
     try {
       const {
@@ -19,16 +32,18 @@ export function useDailyStreak() {
         .from('user_streaks')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle() // ✅ safer
+        .maybeSingle()
 
-      // If no row exists → create one
+      if (error) throw error
+
       if (!data) {
-        const { data: newRow } = await supabase
+        await supabase
           .from('user_streaks')
           .insert({
             user_id: user.id,
             current_streak: 0,
             longest_streak: 0,
+            last_active_date: null,
           })
           .select()
           .single()
@@ -42,12 +57,11 @@ export function useDailyStreak() {
       streak.value = data.current_streak
       longestStreak.value = data.longest_streak
       lastLogin.value = data.last_active_date
-    } catch (error) {
-      console.error('Error loading streak:', error)
+    } catch (err) {
+      console.error('Error loading streak:', err)
     }
   }
 
-  // 🔹 Save to Supabase
   const saveToSupabase = async () => {
     try {
       const {
@@ -55,7 +69,7 @@ export function useDailyStreak() {
       } = await supabase.auth.getUser()
       if (!user) return
 
-      await supabase
+      const { error } = await supabase
         .from('user_streaks')
         .update({
           current_streak: streak.value,
@@ -64,46 +78,63 @@ export function useDailyStreak() {
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id)
-    } catch (error) {
-      console.error('Error saving streak:', error)
+
+      if (error) throw error
+    } catch (err) {
+      console.error('Error saving streak:', err)
+      throw err
     }
   }
 
-  const handleDailyLogin = async (hasStreakSaver = false) => {
-    const today = new Date().toISOString().slice(0, 10)
+  // streakSaverConsumer: async function | null
+  // Called only when streak is broken. Returns true if saver was consumed, false if not.
+  const handleDailyLogin = async (streakSaverConsumer = null) => {
+    const todayPHT = getPHTDateString()
 
-    if (lastLogin.value === today) {
-      return // Already logged in today
+    if (lastLogin.value === todayPHT) {
+      return { alreadyLoggedIn: true }
     }
 
     if (!lastLogin.value) {
-      // First login
+      // First ever login
       streak.value = 1
     } else {
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayStr = yesterday.toISOString().slice(0, 10)
+      const yesterdayPHT = getYesterdayPHTString()
 
-      if (lastLogin.value === yesterdayStr) {
-        // Continue streak
+      if (lastLogin.value === yesterdayPHT) {
+        // Consecutive day — streak continues, no saver needed
         streak.value++
       } else {
-        // Streak broken
-        if (hasStreakSaver) {
-          console.log('🛡️ Streak Saver used!')
+        // Streak broken — try to consume saver if one was passed
+        if (streakSaverConsumer) {
+          console.log('🛡️ Attempting to use Streak Saver...')
+          const consumed = await streakSaverConsumer()
+
+          if (consumed) {
+            console.log('✅ Streak Saver consumed — streak preserved!')
+            // streak.value intentionally NOT reset
+          } else {
+            console.warn('⚠️ Streak Saver failed to consume — resetting streak')
+            streak.value = 1
+          }
         } else {
           streak.value = 1
         }
       }
     }
 
-    // Update longest streak
     if (streak.value > longestStreak.value) {
       longestStreak.value = streak.value
     }
 
-    lastLogin.value = today
-    await saveToSupabase()
+    lastLogin.value = todayPHT
+
+    try {
+      await saveToSupabase()
+      return { success: true }
+    } catch {
+      return { success: false, error: 'Failed to save streak. Try again.' }
+    }
   }
 
   return {

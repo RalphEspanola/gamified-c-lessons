@@ -1,19 +1,17 @@
-// src/composables/useHearts.js
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { supabase } from '@/utils/supabase'
 
 const MAX_HEARTS = 5
-const REFILL_TIME = 30 * 60 * 1000 // 30 minutes in ms
+const REFILL_TIME = 30 * 60 * 1000
 
-// Global reactive state
+// Module-level — shared across all components (intentional)
 const hearts = ref(MAX_HEARTS)
-const nextRefillTime = ref(null) // ✅ Track when the NEXT heart should refill
-let refillInterval = null
+const nextRefillTime = ref(null)
 const loading = ref(true)
 const initialized = ref(false)
+let refillInterval = null
 
 export function useHearts() {
-  // ---------- HELPERS ----------
   const getUserId = async () => {
     const {
       data: { user },
@@ -38,7 +36,6 @@ export function useHearts() {
       if (data) {
         hearts.value = data.hearts ?? MAX_HEARTS
 
-        // ✅ Load the next refill time
         const savedTime = data.next_refill_time
         if (savedTime && hearts.value < MAX_HEARTS) {
           nextRefillTime.value =
@@ -53,7 +50,6 @@ export function useHearts() {
           nextRefillTime.value ? new Date(nextRefillTime.value).toLocaleString() : 'N/A',
         )
       } else {
-        // First-time user, insert row
         hearts.value = MAX_HEARTS
         nextRefillTime.value = null
 
@@ -96,15 +92,12 @@ export function useHearts() {
     }
   }
 
-  // ---------- REFILL LOGIC ----------
   const refillHearts = async () => {
-    // If at max hearts, clear the refill timer
     if (hearts.value >= MAX_HEARTS) {
       nextRefillTime.value = null
       return
     }
 
-    // If no refill time set, set it now
     if (!nextRefillTime.value) {
       nextRefillTime.value = Date.now() + REFILL_TIME
       await saveData()
@@ -113,12 +106,10 @@ export function useHearts() {
 
     const now = Date.now()
 
-    // ✅ Check if it's time to refill
     if (now >= nextRefillTime.value) {
       hearts.value++
       console.log(`💗 Refilled 1 heart. Hearts: ${hearts.value}`)
 
-      // Set next refill time
       if (hearts.value < MAX_HEARTS) {
         nextRefillTime.value = now + REFILL_TIME
       } else {
@@ -144,12 +135,10 @@ export function useHearts() {
     }
   }
 
-  // ---------- HEART ACTIONS ----------
   const loseHeart = async () => {
     if (hearts.value > 0) {
       hearts.value--
 
-      // ✅ Set next refill time if this is the first heart lost
       if (hearts.value === MAX_HEARTS - 1 && !nextRefillTime.value) {
         nextRefillTime.value = Date.now() + REFILL_TIME
       }
@@ -166,7 +155,6 @@ export function useHearts() {
       hearts.value++
       console.log(`💚 Gained a heart. Hearts: ${hearts.value}`)
 
-      // ✅ If we're at max, clear the refill timer
       if (hearts.value >= MAX_HEARTS) {
         nextRefillTime.value = null
       }
@@ -184,7 +172,6 @@ export function useHearts() {
     await saveData()
   }
 
-  // ✅ Initialize function
   const initializeHearts = async () => {
     if (initialized.value) {
       console.log('⏭️ Hearts already initialized')
@@ -193,21 +180,26 @@ export function useHearts() {
 
     console.log('🔄 Initializing hearts...')
     await loadData()
-    await refillHearts() // Check for refills after loading
+    await refillHearts()
     startRefillInterval()
     initialized.value = true
   }
 
-  // ---------- COMPUTED ----------
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    stopRefillInterval()
+    hearts.value = MAX_HEARTS
+    nextRefillTime.value = null
+    loading.value = true
+    initialized.value = false
+    console.log('🔄 Hearts state reset')
+  }
+
   const canContinue = computed(() => hearts.value > 0)
 
   const timeUntilNextHeart = computed(() => {
     if (hearts.value >= MAX_HEARTS || !nextRefillTime.value) return 0
-
-    const now = Date.now()
-    const remaining = nextRefillTime.value - now
-
-    return Math.max(0, remaining)
+    return Math.max(0, nextRefillTime.value - Date.now())
   })
 
   const formattedTimeRemaining = computed(() => {
@@ -218,11 +210,6 @@ export function useHearts() {
   })
 
   const heartPercentage = computed(() => (hearts.value / MAX_HEARTS) * 100)
-
-  // ---------- LIFECYCLE ----------
-  onMounted(() => {
-    initializeHearts()
-  })
 
   onUnmounted(() => {
     stopRefillInterval()
@@ -241,5 +228,6 @@ export function useHearts() {
     heartPercentage,
     loading,
     initializeHearts,
+    reset,
   }
 }

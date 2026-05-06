@@ -1,4 +1,3 @@
-// composables/system/useShop.js
 import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { useHearts } from '@/composables/PowerUps/useHearts'
@@ -8,13 +7,11 @@ const powerUps = ref({
   doubleXP: 0,
   answerProtect: 0,
 })
-
 const coins = ref(0)
 
 export function useShop() {
   const { restoreAllHearts, gainHeart, hearts, MAX_HEARTS } = useHearts()
 
-  // 🔹 Initialize from Supabase
   const initializeShop = async () => {
     try {
       const {
@@ -24,7 +21,6 @@ export function useShop() {
 
       console.log('🔄 Initializing shop...')
 
-      // Get coins from user_stats
       const { data: stats } = await supabase
         .from('user_stats')
         .select('coins')
@@ -36,7 +32,6 @@ export function useShop() {
         console.log('💰 Coins loaded:', coins.value)
       }
 
-      // Get powerups from user_inventory
       const { data: inventory, error: inventoryError } = await supabase
         .from('user_inventory')
         .select('item_key, quantity')
@@ -60,7 +55,6 @@ export function useShop() {
     }
   }
 
-  // 🔹 Add coins
   const addCoins = async (amount) => {
     try {
       const {
@@ -82,7 +76,6 @@ export function useShop() {
     }
   }
 
-  // 🔹 Spend coins
   const spendCoins = async (amount) => {
     if (coins.value >= amount) {
       await addCoins(-amount)
@@ -91,10 +84,8 @@ export function useShop() {
     return false
   }
 
-  // 🔹 Buy heart refill
   const buyHeartRefill = async (type) => {
     const prices = { single: 10, full: 30 }
-
     if (await spendCoins(prices[type])) {
       if (type === 'single') await gainHeart()
       else await restoreAllHearts()
@@ -103,7 +94,6 @@ export function useShop() {
     return false
   }
 
-  // 🔹 Buy power-up
   const buyPowerUp = async (powerUpType, price) => {
     try {
       console.log(`🛒 Attempting to buy ${powerUpType} for ${price} coins`)
@@ -130,13 +120,12 @@ export function useShop() {
       const itemKey = itemKeyMap[powerUpType]
       console.log(`📝 Item key: ${itemKey}`)
 
-      // Check existing quantity
       const { data: existing, error: fetchError } = await supabase
         .from('user_inventory')
         .select('quantity')
         .eq('user_id', user.id)
         .eq('item_key', itemKey)
-        .maybeSingle() // ✅ Use maybeSingle() instead of single() to avoid error if not found
+        .maybeSingle()
 
       if (fetchError) {
         console.error('❌ Error fetching existing inventory:', fetchError)
@@ -148,7 +137,6 @@ export function useShop() {
 
       console.log(`📊 Current quantity: ${currentQuantity}, New quantity: ${newQuantity}`)
 
-      // Upsert inventory item
       const { error: upsertError } = await supabase.from('user_inventory').upsert(
         {
           user_id: user.id,
@@ -156,9 +144,7 @@ export function useShop() {
           quantity: newQuantity,
           updated_at: new Date().toISOString(),
         },
-        {
-          onConflict: 'user_id,item_key', // ✅ Specify conflict columns
-        },
+        { onConflict: 'user_id,item_key' },
       )
 
       if (upsertError) {
@@ -166,7 +152,6 @@ export function useShop() {
         return false
       }
 
-      // ✅ Update local state immediately
       powerUps.value[powerUpType] = newQuantity
       console.log(`✅ Successfully bought ${powerUpType}! New count: ${newQuantity}`)
       console.log('📦 Updated powerUps:', powerUps.value)
@@ -177,8 +162,6 @@ export function useShop() {
       return false
     }
   }
-
-  // ✅ REMOVED usePowerUp function - not needed anymore
 
   const canAfford = (price) => coins.value >= price
 
@@ -242,6 +225,13 @@ export function useShop() {
     },
   ])
 
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    coins.value = 0
+    powerUps.value = { streakSaver: 0, doubleXP: 0, answerProtect: 0 }
+    console.log('🔄 Shop state reset')
+  }
+
   return {
     coins,
     powerUps,
@@ -252,5 +242,6 @@ export function useShop() {
     buyPowerUp,
     canAfford,
     initializeShop,
+    reset,
   }
 }

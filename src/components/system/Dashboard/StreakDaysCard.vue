@@ -6,12 +6,17 @@ import { useStreakSaver } from '@/composables/PowerUps/useStreakSaver'
 defineOptions({ inheritAttrs: false })
 
 const { streak, longestStreak, initializeStreak, handleDailyLogin } = useDailyStreak()
-const { isStreakProtected } = useStreakSaver()
+const { isStreakProtected, useStreakProtection, initializeStreakSaver } = useStreakSaver()
 
-// 🔹 Initialize on mount
 onMounted(async () => {
-  await initializeStreak()
-  await handleDailyLogin(isStreakProtected.value)
+  // Initialize both in parallel — streak saver must be loaded
+  // before we check isStreakProtected, so we await both first
+  await Promise.all([initializeStreak(), initializeStreakSaver()])
+
+  // Only pass the consumer if protection is actually active
+  // useStreakProtection will deduct from inventory + deactivate the shield
+  const consumer = isStreakProtected.value ? useStreakProtection : null
+  await handleDailyLogin(consumer)
 })
 </script>
 

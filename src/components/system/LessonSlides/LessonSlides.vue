@@ -18,7 +18,6 @@ import CoinRewardDialog from '../Shop/CoinRewardDialog.vue'
 
 const router = useRouter()
 
-// Props
 const props = defineProps({
   lessonTitle: { type: String, required: true },
   lessonDescription: { type: String, required: true },
@@ -30,17 +29,16 @@ const props = defineProps({
   mode: { type: String, default: 'lesson' }, // 'lesson' | 'quiz'
 })
 
-// Emits
 const emit = defineEmits(['lesson-complete', 'quiz-complete'])
 
-// Reactive state
 const currentSlide = ref(0)
 const showNoHeartsDialog = ref(false)
 const showRewardDialog = ref(false)
 const hadMistake = ref(false)
-
-// ✅ Track if we've awarded rewards this session (prevents duplicate awards)
 const hasAwardedRewardsThisSession = ref(false)
+
+// ✅ Tracks whether Double XP was applied — passed to CoinRewardDialog for display only
+const doubleXPApplied = ref(false)
 
 const rewardPayload = ref({
   xp: 0,
@@ -49,9 +47,12 @@ const rewardPayload = ref({
   perfect: false,
 })
 
-// Composables
-const { coins, addCoins, initializeShop } = useShop()
-const { canContinue, loseHeart, gainHeart, initializeHearts, hearts } = useHearts()
+// ✅ removed unused `addCoins`
+const { coins, initializeShop } = useShop()
+
+// ✅ removed unused `hearts`
+const { canContinue, loseHeart, gainHeart, initializeHearts } = useHearts()
+
 const {
   completeLesson: completeLessonProgress,
   completeQuiz,
@@ -59,9 +60,9 @@ const {
   isQuizCompleted,
   initializeProgress,
 } = useLearningProgress()
+
 const { isDoubleXPActive, consumeDoubleXP, initializeDoubleXP } = useDoubleXP()
 
-// Computed: Check if already completed
 const alreadyCompleted = computed(() => {
   if (props.mode === 'quiz') {
     return isQuizCompleted(props.topicId)
@@ -70,7 +71,6 @@ const alreadyCompleted = computed(() => {
   }
 })
 
-// 🔹 Initialize on mount
 onMounted(async () => {
   await Promise.all([
     initializeShop(),
@@ -81,17 +81,12 @@ onMounted(async () => {
 
   console.log('📚 Lesson already completed on mount:', alreadyCompleted.value)
 
-  // ✅ Check if user has hearts when entering the lesson
-  // Allow access if: (1) lesson is already completed (review mode) OR (2) user has hearts
   if (!alreadyCompleted.value && !canContinue.value) {
     console.log('❌ No hearts available - showing dialog')
     showNoHeartsDialog.value = true
   }
 })
 
-const slide = computed(() => props.slides[currentSlide.value])
-
-// --- Quiz Handlers ---
 function handleWrongAnswer() {
   hadMistake.value = true
   const lost = loseHeart()
@@ -99,17 +94,14 @@ function handleWrongAnswer() {
 }
 
 function handleCorrectAnswer() {
-  // Optional: track correct answers
+  // reserved for future use
 }
 
-// --- Navigation ---
 function nextSlide() {
-  // ✅ Check hearts before allowing navigation (except in review mode)
   if (!alreadyCompleted.value && !canContinue.value) {
     showNoHeartsDialog.value = true
     return
   }
-
   if (currentSlide.value < props.slides.length - 1) currentSlide.value++
 }
 
@@ -121,22 +113,18 @@ function goBack() {
   router.push(props.backRoute)
 }
 
-// ✅ Handle when NoHeartsDialog closes (user needs to go back)
 function handleNoHeartsClose() {
   showNoHeartsDialog.value = false
-  // Redirect user back if they have no hearts
   if (!canContinue.value && !alreadyCompleted.value) {
     router.push(props.backRoute)
   }
 }
 
-// --- Complete Lesson / Quiz ---
 async function handleCompleteLesson() {
   console.log('🎯 Complete button clicked')
   console.log('📊 Already completed:', alreadyCompleted.value)
   console.log('🎁 Already awarded this session:', hasAwardedRewardsThisSession.value)
 
-  // ✅ If already completed OR already awarded, just navigate away
   if (alreadyCompleted.value || hasAwardedRewardsThisSession.value) {
     console.log('⏭️ Already completed - navigating without showing dialog')
     router.push(props.completeRoute)
@@ -147,38 +135,40 @@ async function handleCompleteLesson() {
 
   const perfectScore = !hadMistake.value
 
-  // ✅ Calculate BASE rewards (WITHOUT Double XP multiplier)
   let xpReward = props.mode === 'quiz' ? 150 : 100
   let coinsReward = props.mode === 'quiz' ? 20 : 10
 
-  // Perfect score bonus is added to base XP
   if (perfectScore) {
-    xpReward += 50 // Bonus for perfect score
+    xpReward += 50
   }
 
   console.log('🎁 Base XP reward:', xpReward)
   console.log('🎁 Perfect score:', perfectScore)
   console.log('⚡ Double XP active:', isDoubleXPActive.value)
 
-  // Set reward payload (BASE values only)
+  // ✅ Apply Double XP multiplier here — CoinRewardDialog just displays, doesn't recalculate
+  if (isDoubleXPActive.value) {
+    xpReward *= 2
+    await consumeDoubleXP()
+    doubleXPApplied.value = true
+    console.log('⚡ Double XP consumed. Final XP:', xpReward)
+  } else {
+    doubleXPApplied.value = false
+  }
+
   rewardPayload.value = {
-    xp: xpReward, // Base XP (100 or 150, +50 if perfect)
+    xp: xpReward,
     coins: coinsReward,
     hearts: 1,
     perfect: perfectScore,
   }
 
-  // Give heart reward
   console.log('🎁 Giving heart reward')
   await gainHeart()
 
-  // ✅ Mark as awarded BEFORE showing dialog
   hasAwardedRewardsThisSession.value = true
-
-  // Show reward dialog (will handle Double XP and actually award XP/coins)
   showRewardDialog.value = true
 
-  // Save completion to database
   console.log('💾 Saving completion to database')
   if (props.mode === 'quiz') {
     await completeQuiz(props.topicId)
@@ -201,7 +191,6 @@ function continueAfterReward() {
     <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-3">
       <HeartDisplay />
       <div class="d-flex gap-2">
-        <!-- Show Double XP status -->
         <v-chip v-if="isDoubleXPActive" color="yellow" text-color="black" size="large">
           <v-icon start>mdi-lightning-bolt</v-icon>
           2X XP ACTIVE
@@ -218,7 +207,6 @@ function continueAfterReward() {
       <h1 class="text-h4 font-weight-bold">{{ lessonTitle }}</h1>
       <p class="text-subtitle-1 text-grey">{{ lessonDescription }}</p>
 
-      <!-- ✅ Show indicator if already completed -->
       <v-chip v-if="alreadyCompleted" color="success" size="small" class="mt-2">
         <v-icon start size="small">mdi-check-circle</v-icon>
         Completed (Review Mode)
@@ -309,7 +297,6 @@ function continueAfterReward() {
         @click="handleCompleteLesson"
         size="large"
       >
-        <!-- ✅ Change button text if already completed -->
         {{
           alreadyCompleted
             ? 'Finish Review'
@@ -326,7 +313,7 @@ function continueAfterReward() {
       :coins-earned="rewardPayload.coins"
       :hearts-earned="rewardPayload.hearts"
       :perfect-score="rewardPayload.perfect"
-      :already-completed="false"
+      :double-xp-applied="doubleXPApplied"
       @continue="continueAfterReward"
     />
   </v-container>

@@ -1,11 +1,9 @@
-// composables/PowerUps/useAnswerProtection.js
 import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 
 const answerProtectionActive = ref(false)
 
 export function useAnswerProtection() {
-  // 🔹 Check if user actually owns Answer Protection in inventory
   const hasAnswerProtectionInInventory = async () => {
     try {
       const {
@@ -27,7 +25,6 @@ export function useAnswerProtection() {
     }
   }
 
-  // 🔹 Initialize from Supabase
   const initializeProtection = async () => {
     try {
       const {
@@ -49,7 +46,6 @@ export function useAnswerProtection() {
     }
   }
 
-  // 🔹 Save to Supabase
   const saveToSupabase = async () => {
     try {
       const {
@@ -69,26 +65,20 @@ export function useAnswerProtection() {
     }
   }
 
-  // ✅ ACTIVATE: Just mark as ready, DON'T deduct inventory
   const activateAnswerProtection = async () => {
-    // Verify they have it before activating
     const hasInventory = await hasAnswerProtectionInInventory()
     if (!hasInventory) {
       console.warn('Cannot activate Answer Protection: not in inventory')
       return false
     }
 
-    // Just activate - don't deduct yet
     answerProtectionActive.value = true
     await saveToSupabase()
     return true
   }
 
-  const isProtectionActive = computed(() => {
-    return answerProtectionActive.value
-  })
+  const isProtectionActive = computed(() => answerProtectionActive.value)
 
-  // ✅ USE: Deduct from inventory NOW (when actually protecting from wrong answer)
   const useProtection = async () => {
     if (!isProtectionActive.value) return false
 
@@ -98,7 +88,6 @@ export function useAnswerProtection() {
       } = await supabase.auth.getUser()
       if (!user) return false
 
-      // Deduct from inventory NOW
       const { data: current } = await supabase
         .from('user_inventory')
         .select('quantity')
@@ -116,14 +105,12 @@ export function useAnswerProtection() {
           .eq('user_id', user.id)
           .eq('item_key', 'answer_protect')
       } else {
-        // They don't have any left - shouldn't happen but handle it
         console.warn('No Answer Protection in inventory to consume')
         answerProtectionActive.value = false
         await saveToSupabase()
         return false
       }
 
-      // Deactivate after use
       answerProtectionActive.value = false
       await saveToSupabase()
       return true
@@ -133,10 +120,15 @@ export function useAnswerProtection() {
     }
   }
 
-  // ✅ DEACTIVATE: Turn off without consuming
   const deactivateProtection = async () => {
     answerProtectionActive.value = false
     await saveToSupabase()
+  }
+
+  // ✅ Called on logout to clear state before next user loads
+  const reset = () => {
+    answerProtectionActive.value = false
+    console.log('🔄 Answer Protection state reset')
   }
 
   return {
@@ -145,5 +137,6 @@ export function useAnswerProtection() {
     useProtection,
     deactivateProtection,
     initializeProtection,
+    reset,
   }
 }
