@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
+import AnswerFeedback from './System/AnswerFeedback.vue'
 
 const props = defineProps({
   task: { type: Object, required: true },
@@ -13,9 +14,12 @@ const checkResult = ref(null)
 const protectionTriggered = ref(false)
 const showAnswer = ref(false)
 
+// Feedback overlay
+const showFeedback = ref(false)
+const answeredCorrect = ref(false)
+
 const { useProtection, initializeProtection } = useAnswerProtection()
 
-// ✅ Initialize on mount
 onMounted(async () => {
   await initializeProtection()
 })
@@ -46,11 +50,9 @@ function removeBlankAnswer(blankId) {
   }
 }
 
-// ✅ FIXED: Made function async and added await
 async function checkCodingTask() {
   const blanks = props.task.blanks
 
-  // 1️⃣ Check if ANY blank is wrong
   let allCorrect = true
   for (const blank of blanks) {
     if (blankAnswers.value[blank.id] !== blank.answer) {
@@ -59,27 +61,29 @@ async function checkCodingTask() {
     }
   }
 
-  // 2️⃣ If all correct → no need for protection
   if (allCorrect) {
     checkResult.value = true
     protectionTriggered.value = false
+    answeredCorrect.value = true
+    showFeedback.value = true
     emit('correct-answer')
     return
   }
 
-  // 3️⃣ Wrong → try Answer Protection ONCE
-  const wasProtected = await useProtection() // ✅ ADDED await
+  const wasProtected = await useProtection()
 
   if (wasProtected) {
-    // Protection prevents heart loss
     checkResult.value = false
     protectionTriggered.value = true
+    answeredCorrect.value = false
+    showFeedback.value = true
     return
   }
 
-  // 4️⃣ No protection → heart deducted
   checkResult.value = false
   protectionTriggered.value = false
+  answeredCorrect.value = false
+  showFeedback.value = true
   emit('wrong-answer')
 }
 
@@ -88,10 +92,15 @@ function resetCodingTask() {
   availableOptions.value = [...props.task.options]
   checkResult.value = null
   protectionTriggered.value = false
+  showFeedback.value = false
 }
 
 function toggleAnswer() {
   showAnswer.value = !showAnswer.value
+}
+
+function onFeedbackDone() {
+  showFeedback.value = false
 }
 
 const isTaskComplete = computed(() => {
@@ -110,7 +119,15 @@ const getFilledTemplate = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div style="position: relative">
+    <!-- Feedback overlay -->
+    <AnswerFeedback
+      :show="showFeedback"
+      :correct="answeredCorrect"
+      :xp-gained="10"
+      @done="onFeedbackDone"
+    />
+
     <!-- Code Preview -->
     <v-card color="grey-lighten-4" class="pa-4 mb-4">
       <pre class="code-block"><code>{{ getFilledTemplate }}</code></pre>

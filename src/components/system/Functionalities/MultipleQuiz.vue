@@ -2,6 +2,7 @@
 import { ref, triggerRef, onMounted } from 'vue'
 import { useAnswerProtection } from '@/composables/PowerUps/useAnswerProtection'
 import { useShop } from '@/composables/system/useShop'
+import AnswerFeedback from './System/AnswerFeedback.vue'
 
 const props = defineProps({
   quizzes: {
@@ -16,20 +17,31 @@ const practiceAnswers = ref({})
 const practiceBlankAnswers = ref({})
 const practiceAvailableOptions = ref({})
 
-// Answer Protection
-const { useProtection, initializeProtection } = useAnswerProtection()
+// Feedback overlay — one per quiz index
+const showFeedback = ref({})
+const answeredCorrect = ref({})
 
-// ✅ Add Shop for coin deduction
+const { useProtection, initializeProtection } = useAnswerProtection()
 const { spendCoins, canAfford, initializeShop } = useShop()
 
 const SHOW_ANSWER_COST = 3
 
-// Initialize on mount
 onMounted(async () => {
   await Promise.all([initializeShop(), initializeProtection()])
 })
 
-// Initialize available options
+function triggerFeedback(quizIndex, correct) {
+  answeredCorrect.value[quizIndex] = correct
+  showFeedback.value[quizIndex] = true
+  triggerRef(showFeedback)
+  triggerRef(answeredCorrect)
+}
+
+function onFeedbackDone(quizIndex) {
+  showFeedback.value[quizIndex] = false
+  triggerRef(showFeedback)
+}
+
 function initPracticeInteractive(quizIndex, quiz) {
   if (!practiceBlankAnswers.value[quizIndex]) {
     practiceBlankAnswers.value[quizIndex] = {}
@@ -39,7 +51,6 @@ function initPracticeInteractive(quizIndex, quiz) {
   }
 }
 
-// Selecting an option
 function selectPracticeOption(quizIndex, blankId, option) {
   if (!blankId) return
 
@@ -47,15 +58,12 @@ function selectPracticeOption(quizIndex, blankId, option) {
     practiceBlankAnswers.value[quizIndex] = {}
   }
 
-  // Return old answer if exists
   if (practiceBlankAnswers.value[quizIndex][blankId]) {
     practiceAvailableOptions.value[quizIndex].push(practiceBlankAnswers.value[quizIndex][blankId])
   }
 
-  // Set new answer
   practiceBlankAnswers.value[quizIndex][blankId] = option
 
-  // Remove from available options
   const index = practiceAvailableOptions.value[quizIndex].indexOf(option)
   if (index > -1) {
     practiceAvailableOptions.value[quizIndex].splice(index, 1)
@@ -69,11 +77,9 @@ function selectPracticeOption(quizIndex, blankId, option) {
   }
 }
 
-// Removing an answer from a blank
 function removePracticeBlank(quizIndex, blankId) {
   if (practiceBlankAnswers.value[quizIndex]?.[blankId]) {
     practiceAvailableOptions.value[quizIndex].push(practiceBlankAnswers.value[quizIndex][blankId])
-
     delete practiceBlankAnswers.value[quizIndex][blankId]
 
     triggerRef(practiceBlankAnswers)
@@ -103,6 +109,7 @@ async function checkPracticeInteractive(quizIndex, quiz) {
       isCorrect: true,
       protectionTriggered: false,
     }
+    triggerFeedback(quizIndex, true)
     emit('correct-answer')
     return
   }
@@ -115,6 +122,7 @@ async function checkPracticeInteractive(quizIndex, quiz) {
       isCorrect: false,
       protectionTriggered: true,
     }
+    triggerFeedback(quizIndex, false)
     return
   }
 
@@ -123,7 +131,7 @@ async function checkPracticeInteractive(quizIndex, quiz) {
     isCorrect: false,
     protectionTriggered: false,
   }
-
+  triggerFeedback(quizIndex, false)
   emit('wrong-answer')
 }
 
@@ -134,28 +142,23 @@ function isPracticeComplete(quizIndex, quiz) {
 
 function getPracticeFilledTemplate(quizIndex, quiz) {
   if (!quiz.template) return ''
-
   let template = quiz.template
   quiz.blanks.forEach((blank) => {
     const val = practiceBlankAnswers.value[quizIndex]?.[blank.id]
     template = template.replace(`[${blank.id}]`, val || `[${blank.id}]`)
   })
-
   return template
 }
 
 function getCorrectTemplate(quiz) {
   if (!quiz.template) return ''
-
   let template = quiz.template
   quiz.blanks.forEach((blank) => {
     template = template.replace(`[${blank.id}]`, blank.answer)
   })
-
   return template
 }
 
-// ✅ FIXED: Reveal one answer with coin deduction
 async function revealOneAnswer(quizIndex, quiz) {
   if (!canAfford(SHOW_ANSWER_COST)) {
     console.warn('Not enough coins')
@@ -170,7 +173,6 @@ async function revealOneAnswer(quizIndex, quiz) {
 
   if (!targetBlank) return
 
-  // ✅ Actually spend the coins
   const success = await spendCoins(SHOW_ANSWER_COST)
   if (!success) {
     console.warn('Failed to spend coins')
@@ -205,7 +207,15 @@ async function revealOneAnswer(quizIndex, quiz) {
       <h3 class="text-h6 mb-3">❓ {{ quiz.question }}</h3>
 
       <!-- Interactive mode -->
-      <div v-if="quiz.interactive">
+      <div v-if="quiz.interactive" style="position: relative">
+        <!-- Feedback overlay -->
+        <AnswerFeedback
+          :show="showFeedback[index] || false"
+          :correct="answeredCorrect[index] || false"
+          :xp-gained="10"
+          @done="onFeedbackDone(index)"
+        />
+
         <!-- Template preview -->
         <v-card color="grey-lighten-4" class="pa-3 mb-3">
           <code>{{ getPracticeFilledTemplate(index, quiz) }}</code>
@@ -242,7 +252,6 @@ async function revealOneAnswer(quizIndex, quiz) {
         <!-- Options -->
         <div class="mb-2">
           <div class="text-caption mb-1">Options:</div>
-
           <v-chip
             v-for="(option, optIdx) in (() => {
               initPracticeInteractive(index, quiz)
@@ -288,7 +297,7 @@ async function revealOneAnswer(quizIndex, quiz) {
         </v-btn>
       </div>
 
-      <!-- Feedback -->
+      <!-- Feedback alert -->
       <v-alert
         v-if="practiceAnswers[index]"
         :type="
@@ -302,11 +311,9 @@ async function revealOneAnswer(quizIndex, quiz) {
         variant="tonal"
       >
         <div v-if="practiceAnswers[index].isCorrect">✅ Correct!</div>
-
         <div v-else-if="practiceAnswers[index].protectionTriggered">
           🛡️ Answer Protection saved you! No heart lost.
         </div>
-
         <div v-else>
           <div class="mb-2">💡 Not quite right. The correct answer:</div>
           <v-card color="white" class="pa-2">
