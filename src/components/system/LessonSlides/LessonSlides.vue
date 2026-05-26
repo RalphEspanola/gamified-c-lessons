@@ -12,6 +12,7 @@ import ContentSection from '../Functionalities/ContentSection.vue'
 import ExplanationSection from '../Functionalities/ExplanationSection.vue'
 import MultipleQuiz from '../Functionalities/MultipleQuiz.vue'
 import SingleQuiz from '../Functionalities/SingleQuiz.vue'
+import ReferenceSection from '@/components/functionalities/ReferenceSection.vue'
 import HeartDisplay from '../Functionalities/Heart System/HeartDisplay.vue'
 import NoHeartsDialog from '../Functionalities/Heart System/NoHeartsDialog.vue'
 import CoinRewardDialog from '../Shop/CoinRewardDialog.vue'
@@ -26,7 +27,7 @@ const props = defineProps({
   completeRoute: { type: String, default: '/' },
   topicId: { type: Number, required: true },
   lessonId: { type: Number },
-  mode: { type: String, default: 'lesson' }, // 'lesson' | 'quiz'
+  mode: { type: String, default: 'lesson' },
 })
 
 const emit = defineEmits(['lesson-complete', 'quiz-complete'])
@@ -36,8 +37,6 @@ const showNoHeartsDialog = ref(false)
 const showRewardDialog = ref(false)
 const hadMistake = ref(false)
 const hasAwardedRewardsThisSession = ref(false)
-
-// ✅ Tracks whether Double XP was applied — passed to CoinRewardDialog for display only
 const doubleXPApplied = ref(false)
 
 const rewardPayload = ref({
@@ -47,10 +46,7 @@ const rewardPayload = ref({
   perfect: false,
 })
 
-// ✅ removed unused `addCoins`
 const { coins, initializeShop } = useShop()
-
-// ✅ removed unused `hearts`
 const { canContinue, loseHeart, gainHeart, initializeHearts } = useHearts()
 
 const {
@@ -69,6 +65,11 @@ const alreadyCompleted = computed(() => {
   } else {
     return isLessonCompleted(props.topicId, props.lessonId)
   }
+})
+
+// ✅ True when the current slide is the references slide
+const isReferencesSlide = computed(() => {
+  return !!props.slides[currentSlide.value]?.references
 })
 
 onMounted(async () => {
@@ -146,7 +147,6 @@ async function handleCompleteLesson() {
   console.log('🎁 Perfect score:', perfectScore)
   console.log('⚡ Double XP active:', isDoubleXPActive.value)
 
-  // ✅ Apply Double XP multiplier here — CoinRewardDialog just displays, doesn't recalculate
   if (isDoubleXPActive.value) {
     xpReward *= 2
     await consumeDoubleXP()
@@ -259,6 +259,13 @@ function continueAfterReward() {
             :task="slideItem.codingTask"
             @wrong-answer="handleWrongAnswer"
             @correct-answer="handleCorrectAnswer"
+          />
+
+          <!-- ✅ References slide — renders when slide has a references array -->
+          <ReferenceSection
+            v-if="slideItem.references && slideItem.references.length > 0"
+            :references="slideItem.references"
+            :initial-count="2"
           />
         </v-card>
       </v-window-item>
