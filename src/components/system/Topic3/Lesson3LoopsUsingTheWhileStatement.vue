@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson3References } from '../Dashboard/Data/references/topic3/lesson3References'
 
 const lessonTitle = 'Lesson 3: Loops Using the While Statement'
 const lessonDescription = 'Practical applications of while loops in C programming'
@@ -178,6 +179,11 @@ while (x < 8) {
 • The condition is checked before the body runs.
 • Use a while loop when the number of repetitions is unknown.
 • Example uses: counting, summing values, validating input.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson3References,
   },
 ]
 </script>

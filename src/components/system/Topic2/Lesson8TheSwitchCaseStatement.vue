@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson8References } from '../Dashboard/Data/references/topic2/lesson8References'
 
 const lessonTitle = 'Lesson 8: The Switch Case Statement'
 const lessonDescription = 'Understanding switch-case statements in C programming'
@@ -250,6 +251,11 @@ int main() {
 • The break statement prevents code from continuing to the next case.
 • The default case runs when no match is found.
 • Best used when testing a single variable against many constant values.`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson8References,
   },
 ]
 </script>

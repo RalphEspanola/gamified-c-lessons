@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson4References } from '../Dashboard/Data/references/topic5/lesson4References.js'
 
 const lessonTitle = 'Lesson 4: Basic String Manipulations and Functions'
 const lessonDescription = 'Mastering string manipulation functions in C'
@@ -264,6 +265,11 @@ your program might crash or behave unpredictably.
 • strcmp() returns 0 if the strings are equal.
 • Use %lu when printing results of strlen() because it returns an unsigned long.
 • Always allocate enough memory for destination arrays.`,
+  },
+  {
+    id: 13,
+    title: 'References',
+    references: lesson4References,
   },
 ]
 </script>

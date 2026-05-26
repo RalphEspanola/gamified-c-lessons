@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson2References } from '../../Dashboard/Data/references/topic1/lesson2References'
 
 const lessonTitle = 'Lesson 2: Variables and Data Types'
 const lessonDescription = 'Understanding variables and data types in C'
@@ -153,6 +154,11 @@ int main() {
   - %d for int
   - %f for float
   - %c for char`,
+  },
+  {
+    id: 9, // whatever the next id is for that lesson
+    title: 'References',
+    references: lesson2References,
   },
 ]
 </script>

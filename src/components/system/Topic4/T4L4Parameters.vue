@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson4References } from '../Dashboard/Data/references/topic4/lesson4References.js'
 
 const lessonTitle = 'Lesson 4: Parameters'
 const lessonDescription = 'Understanding function parameters in C programming'
@@ -208,6 +209,11 @@ void displayInfo(char name[], int age) {
 • Parameters = placeholders, Arguments = actual data.
 • You can define multiple parameters in one function.
 • Parameters make functions flexible, reusable, and dynamic.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson4References,
   },
 ]
 </script>

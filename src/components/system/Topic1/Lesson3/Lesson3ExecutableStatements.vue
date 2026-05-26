@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson3References } from '../../Dashboard/Data/references/topic1/lesson3References'
 
 const lessonTitle = 'Lesson 3: Executable Statements (Input & Output)'
 const lessonDescription = 'Master input and output operations'
@@ -135,6 +136,11 @@ int main() {
 - Always use & before variables in scanf().
 - Statements must end with a semicolon ;.
 - Format specifiers: %d for int, %f for float, %c for char.`,
+  },
+  {
+    id: 8,
+    title: 'References',
+    references: lesson3References,
   },
 ]
 </script>

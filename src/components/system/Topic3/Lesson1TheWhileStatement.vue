@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson1References } from '../Dashboard/Data/references/topic3/lesson1References'
 
 const lessonTitle = 'Lesson 1: The While Statement'
 const lessonDescription = 'Understanding while loops in C programming'
@@ -170,6 +171,11 @@ while (i <= 3) {
 • If it's false from the start, the loop body won't run.
 • Always include an update statement to avoid infinite loops.
 • Used when the number of repetitions is unknown ahead of time.`,
+  },
+  {
+    id: 1,
+    title: 'References',
+    references: lesson1References,
   },
 ]
 </script>

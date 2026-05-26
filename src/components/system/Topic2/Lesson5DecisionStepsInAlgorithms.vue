@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson5References } from '../Dashboard/Data/references/topic2/lesson5References'
 
 const lessonTitle = 'Lesson 5: Decision Steps in Algorithms'
 const lessonDescription = 'Understanding decision-making in algorithms and C programs'
@@ -150,6 +151,11 @@ int main() {
 • In C, decisions are made using if and else.
 • The if block runs when the condition is true, the else block when it's false.
 • Decision steps make your program smart and interactive — not just linear.`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson5References,
   },
 ]
 </script>

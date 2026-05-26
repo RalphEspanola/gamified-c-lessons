@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson7References } from '../Dashboard/Data/references/topic3/lesson7References'
 
 const lessonTitle = 'Lesson 7: Nested Logic and Loop'
 const lessonDescription = 'Understanding nested loops in C programming'
@@ -190,6 +191,11 @@ int main() {
 • Total executions = (outer loop count) × (inner loop count).
 • Common uses: patterns, tables, grids, and 2D data.
 • Loops can contain conditional logic (if statements) for more control — that's called nested logic.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson7References,
   },
 ]
 </script>

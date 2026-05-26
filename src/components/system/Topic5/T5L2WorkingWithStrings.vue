@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson2References } from '../Dashboard/Data/references/topic5/lesson2References.js'
 
 const lessonTitle = 'Lesson 2: Working with Strings'
 const lessonDescription = 'Understanding strings and string manipulation in C'
@@ -252,6 +253,11 @@ int main() {
   • strcat() → join strings
   • strcmp() → compare strings
 • Always allocate enough space for all characters plus the null terminator.`,
+  },
+  {
+    id: 12,
+    title: 'References',
+    references: lesson2References,
   },
 ]
 </script>

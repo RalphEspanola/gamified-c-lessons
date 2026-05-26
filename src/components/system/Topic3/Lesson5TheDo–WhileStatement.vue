@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson5References } from '../Dashboard/Data/references/topic3/lesson5References'
 
 const lessonTitle = 'Lesson 5: The Do–While Statement'
 const lessonDescription = 'Understanding do-while loops in C programming'
@@ -212,6 +213,11 @@ Structure:`,
 } while (condition);`,
       },
     ],
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson5References,
   },
 ]
 </script>

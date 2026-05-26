@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson3References } from '../Dashboard/Data/references/topic5/lesson3References.js'
 
 const lessonTitle = 'Lesson 3: Multidimensional Arrays'
 const lessonDescription = 'Understanding multidimensional arrays in C programming'
@@ -274,6 +275,11 @@ int main() {
 • Use nested loops to access all elements.
 • Array indexes start from 0.
 • 3D arrays can represent data with multiple layers (like semester, subject, and quiz).`,
+  },
+  {
+    id: 12,
+    title: 'References',
+    references: lesson3References,
   },
 ]
 </script>

@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson4References } from '../../Dashboard/Data/references/topic1/lesson4References'
 
 const lessonTitle = 'Lesson 4: Arithmetic Expressions'
 const lessonDescription = 'Understanding arithmetic operators in C'
@@ -117,6 +118,11 @@ printf("x - y = %d\\n", x - y);`,
 • % gives the remainder in integer division.
 • Division between integers ignores the decimal part.
 • Always match data types (int vs float) when doing calculations.`,
+  },
+  {
+    id: 9,
+    title: 'References',
+    references: lesson4References,
   },
 ]
 </script>

@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson2References } from '../Dashboard/Data/references/topic3/lesson2References'
 
 const lessonTitle = 'Lesson 2: Phases of Loop Execution'
 const lessonDescription = 'Understanding the three phases of loop execution in C'
@@ -131,6 +132,11 @@ while (x < 5) {         // [__________]
 
 • Skipping the update causes infinite loops.
 • Understanding these phases helps you control and predict how loops behave.`,
+  },
+  {
+    id: 9,
+    title: 'References',
+    references: lesson2References,
   },
 ]
 </script>

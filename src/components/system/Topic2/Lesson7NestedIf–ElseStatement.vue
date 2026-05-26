@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson7References } from '../Dashboard/Data/references/topic2/lesson7References'
 
 const lessonTitle = 'Lesson 7: Nested If–Else Statement'
 const lessonDescription = 'Understanding nested if-else and else-if statements in C'
@@ -192,6 +193,11 @@ int main() {
 
 Think of it like:
 👉 If this... else if that... otherwise...`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson7References,
   },
 ]
 </script>

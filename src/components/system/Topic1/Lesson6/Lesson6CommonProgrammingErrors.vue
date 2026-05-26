@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson6References } from '../../Dashboard/Data/references/topic1/lesson6References'
 
 const lessonTitle = 'Lesson 6: Common Programming Errors'
 const lessonDescription = 'Understanding and fixing programming errors in C'
@@ -153,6 +154,11 @@ int main() {
 • Logical errors → wrong logic, wrong results.
 • Runtime errors → crash during program execution.
 • Debugging = finding and fixing these errors.`,
+  },
+  {
+    id: 12,
+    title: 'References',
+    references: lesson6References,
   },
 ]
 </script>

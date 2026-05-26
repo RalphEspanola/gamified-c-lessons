@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson3References } from '../Dashboard/Data/references/topic2/lesson3References'
 
 const lessonTitle = 'Lesson 3: The If Statement'
 const lessonDescription = 'Making simple decisions with if statements'
@@ -140,6 +141,11 @@ int main() {
 - The condition inside ( ) must evaluate to true (1) or false (0).
 - If the condition is false, the block is skipped.
 - Use == for comparison, not = (which assigns values).`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson3References,
   },
 ]
 </script>

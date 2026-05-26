@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson1References } from '../../Dashboard/Data/references/topic1/lesson1References'
 
 // Lesson info
 const lessonTitle = 'Lesson 1: Elements of a C Program'
@@ -111,6 +112,11 @@ int main() {
 • return 0; ends the program successfully.
 
 • All statements must end with a semicolon (;).`,
+  },
+  {
+    id: 8,
+    title: 'References',
+    references: lesson1References,
   },
 ]
 </script>

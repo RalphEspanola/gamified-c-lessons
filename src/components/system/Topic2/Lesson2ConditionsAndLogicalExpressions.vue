@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson2References } from '../Dashboard/Data/references/topic2/lesson2References'
 
 const lessonTitle = 'Lesson 2: Conditions and Logical Expressions'
 const lessonDescription = 'Making decisions with conditions and logical operators'
@@ -186,6 +187,11 @@ int main() {
 - Relational operators compare values (>, <, ==, !=, etc.).
 - Logical operators combine conditions (&&, ||, !).
 - Combining conditions helps build smarter and more precise decisions in your code.`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson2References,
   },
 ]
 </script>

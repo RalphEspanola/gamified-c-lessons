@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson1References } from '../Dashboard/Data/references/topic5/lesson1References.js'
 
 const lessonTitle = 'Lesson 1: One-Dimensional Array'
 const lessonDescription = 'Understanding one-dimensional arrays in C programming'
@@ -210,6 +211,11 @@ int main() {
 • Syntax: dataType arrayName[size];
 • Use loops (like for) to process or display all array elements.
 • Accessing elements outside the array size may cause errors or unexpected results.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson1References,
   },
 ]
 </script>

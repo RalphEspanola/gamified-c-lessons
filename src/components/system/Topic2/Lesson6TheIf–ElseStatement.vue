@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson6References } from '../Dashboard/Data/references/topic2/lesson6References'
 
 const lessonTitle = 'Lesson 6: The If–Else Statement'
 const lessonDescription = 'Understanding if-else statements in C programming'
@@ -167,6 +168,11 @@ int main() {
 • Used to make programs respond differently to data or user input.
 
 Think of it as "If this happens — do this, else — do that."`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson6References,
   },
 ]
 </script>

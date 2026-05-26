@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson1References } from '../Dashboard/Data/references/topic4/lesson1References.js'
 
 const lessonTitle = 'Lesson 1: Top-Down Structured Design with Void Functions'
 const lessonDescription = 'Understanding structured design and void functions in C'
@@ -188,6 +189,11 @@ void outro() {
 • Void functions perform actions but don't return values.
 • The main() function can call other functions for organization.
 • Writing modular functions makes code easier to debug, reuse, and maintain.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson1References,
   },
 ]
 </script>

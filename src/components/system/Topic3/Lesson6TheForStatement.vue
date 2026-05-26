@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson6References } from '../Dashboard/Data/references/topic3/lesson6References'
 
 const lessonTitle = 'Lesson 6: The For Statement'
 const lessonDescription = 'Understanding for loops in C programming'
@@ -189,6 +190,11 @@ int main() {
 • All loop control statements are written on one line.
 • Use it when the number of repetitions is known ahead of time.
 • It's cleaner and easier to read than equivalent while loops.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson6References,
   },
 ]
 </script>

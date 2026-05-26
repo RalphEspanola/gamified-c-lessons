@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson3References } from '../Dashboard/Data/references/topic4/lesson3References.js'
 
 const lessonTitle = 'Lesson 3: Syntax and Semantics of Void Functions'
 const lessonDescription = 'Understanding void function syntax and semantics in C'
@@ -212,6 +213,11 @@ void displayName() {  // Definition
 • Using void functions helps organize repetitive actions in your program.`,
       },
     ],
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson3References,
   },
 ]
 </script>

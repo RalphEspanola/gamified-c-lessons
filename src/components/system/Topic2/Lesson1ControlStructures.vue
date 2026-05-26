@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson1References } from '../Dashboard/Data/references/topic2/lesson1References'
 
 const lessonTitle = 'Lesson 1: Control Structures'
 const lessonDescription = 'Understanding program flow and control mechanisms'
@@ -195,6 +196,11 @@ int main() {
 - Repetition: repeats actions (while, do-while, for).
 
 Combining these structures helps create flexible, logical programs.`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson1References,
   },
 ]
 </script>

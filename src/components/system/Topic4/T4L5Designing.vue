@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson5References } from '../Dashboard/Data/references/topic4/lesson5References.js'
 
 const lessonTitle = 'Lesson 5: Designing Functions'
 const lessonDescription = 'Learning how to design well-structured functions in C'
@@ -215,6 +216,11 @@ void checkNumber(int num) {
   • Reusable (used in different parts of the program)
   • Readable (use meaningful names)
 • Well-designed functions make code easier to debug and maintain.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson5References,
   },
 ]
 </script>

@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson2References } from '../Dashboard/Data/references/topic4/lesson2References.js'
 
 const lessonTitle = 'Lesson 2: An Overview of User-Defined Functions'
 const lessonDescription = 'Understanding user-defined functions in C programming'
@@ -205,6 +206,11 @@ void welcome() {  // Function Definition
   • Definition – contains the actual code.
   • Call – runs the function.
 • User-defined functions make programs organized, reusable, and modular.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson2References,
   },
 ]
 </script>

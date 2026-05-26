@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson4References } from '../Dashboard/Data/references/topic3/lesson4References'
 
 const lessonTitle = 'Lesson 4: The Switch Statement'
 const lessonDescription = 'Using switch statements inside loops in C programming'
@@ -266,6 +267,11 @@ int main() {
 • Each case represents a possible value for the variable being checked.
 • Always include break to prevent fall-through.
 • default handles unmatched cases, like an "else" clause.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson4References,
   },
 ]
 </script>

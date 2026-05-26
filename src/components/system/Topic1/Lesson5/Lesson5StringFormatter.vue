@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../../LessonSlides/LessonSlides.vue'
+import { lesson5References } from '../../Dashboard/Data/references/topic1/lesson5References'
 
 const lessonTitle = 'Lesson 5: String Formatter'
 const lessonDescription = 'Understanding format specifiers in C'
@@ -144,6 +145,11 @@ int main() {
 • %d, %f, %c, %s are the most common.
 • Use precision like %.2f for decimal places.
 • Always match the specifier to the variable type.`,
+  },
+  {
+    id: 10,
+    title: 'References',
+    references: lesson5References,
   },
 ]
 </script>

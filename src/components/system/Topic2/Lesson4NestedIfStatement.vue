@@ -1,5 +1,6 @@
 <script setup>
 import LessonSlides from '../LessonSlides/LessonSlides.vue'
+import { lesson4References } from '../Dashboard/Data/references/topic2/lesson4References'
 
 const lessonTitle = 'Lesson 4: Nested If Statement'
 const lessonDescription = 'Making complex decisions with nested if statements'
@@ -187,6 +188,11 @@ int main() {
 - Use it for multiple related conditions (e.g., grade and section).
 - Always use braces { } to avoid confusion.
 - Proper indentation makes nested code easier to read and debug.`,
+  },
+  {
+    id: 11,
+    title: 'References',
+    references: lesson4References,
   },
 ]
 </script>
